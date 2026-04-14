@@ -434,7 +434,7 @@
         <option value="AM">AM shift</option>
         <option value="PM">PM shift</option>
       </select>
-      <button class="btn btn-excel" onclick="exportExcel()">&#11015; Download Excel</button>
+      <button class="btn btn-excel" id="export-btn" onclick="exportExcel()">&#11015; Download Excel</button>
     </div>
 
     <div id="detail-panel" class="detail-panel">
@@ -586,7 +586,7 @@ function switchView(v, btn) {
   document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
   document.getElementById('view-' + v).classList.add('active');
   btn.classList.add('active');
-  if (v === 'dash') renderDash();  // async — fetches fresh from Supabase each time
+  if (v === 'dash') renderDash();
 }
 
 function switchTab(t, el) {
@@ -797,18 +797,32 @@ function rowToSub(row) {
 }
 
 function getFiltered() {
-  const fb = (document.getElementById('f-branch') || {}).value || '';
+  const forcedBranch = currentRole === 'merchandiser' ? currentBranch : '';
+  const fb = forcedBranch || ((document.getElementById('f-branch') || {}).value || '');
   const fs = (document.getElementById('f-shift')  || {}).value || '';
   return submissions.filter(s => (!fb || s.branch === fb) && (!fs || s.shift === fs));
 }
 
 async function loadSubmissions() {
-  const today = new Date().toISOString().split('T')[0];
-  const { data, error } = await db
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 4);
+  const startDateStr = startDate.toISOString().split('T')[0];
+
+  let query = db
     .from('submissions')
     .select('*')
-    .eq('sub_date', today)
     .order('created_at', { ascending: false });
+
+  // Supervisor sees rolling last 5 days, merchandiser stays focused on today for handover.
+  if (currentRole === 'supervisor') {
+    query = query.gte('sub_date', startDateStr);
+  } else {
+    const todayStr = today.toISOString().split('T')[0];
+    query = query.eq('sub_date', todayStr);
+  }
+
+  const { data, error } = await query;
   if (error) { console.error('Load error:', error); return; }
   submissions = (data || []).map(rowToSub);
 }
@@ -817,27 +831,76 @@ async function renderDash() {
   document.getElementById('sub-list').innerHTML = '<div class="empty">Loading...</div>';
   await loadSubmissions();
   const today = new Date().toISOString().split('T')[0];
-  const ts = submissions.filter(s => s.date === today || !s.date);
-  const filtered = getFiltered().filter(s => s.date === today || !s.date);
-  const brs = [...new Set(ts.map(s => s.branch))].length;
-  const exf = ts.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+  const allToday = submissions.filter(s => s.date === today || !s.date);
+  const scopeSubs = currentRole === 'merchandiser'
+    ? allToday.filter(s => s.branch === currentBranch)
+    : submissions;
+  const filtered = currentRole === 'merchandiser'
+    ? getFiltered().filter(s => s.date === today || !s.date)
+    : getFiltered();
+  const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
+  const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+  const expectedCount = currentRole === 'merchandiser' ? 2 : 10;
+  const supervisorTodayCount = allToday.length;
 
-  document.getElementById('ds-sub').textContent  = ts.length;
-  document.getElementById('ds-br').textContent   = brs;
+  document.getElementById('ds-sub').textContent  = scopeSubs.length;
+  document.getElementById('ds-br').textContent   = currentRole === 'merchandiser' ? 1 : brs;
   document.getElementById('ds-ex').textContent   = exf;
-  document.getElementById('ds-pend').textContent = Math.max(0, 10 - ts.length);
+  document.getElementById('ds-pend').textContent = currentRole === 'merchandiser'
+    ? Math.max(0, expectedCount - scopeSubs.length)
+    : Math.max(0, expectedCount - supervisorTodayCount);
 
-  const expSubs = ts.filter(s => s.expiredItems?.length > 0);
+  const statLabels = document.querySelectorAll('.sc-lbl');
+  const statSubs = document.querySelector('#ds-sub')?.nextElementSibling;
+  const statBranches = document.querySelector('#ds-br')?.nextElementSibling;
+  const statExpired = document.querySelector('#ds-ex')?.nextElementSibling;
+  const statPending = document.querySelector('#ds-pend')?.nextElementSibling;
+
+  if (currentRole === 'supervisor') {
+    if (statLabels[0]) statLabels[0].textContent = 'Submissions last 5 days';
+    if (statLabels[1]) statLabels[1].textContent = 'Branches reported';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags last 5 days';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending today';
+    if (statSubs) statSubs.textContent = 'rolling 5-day view';
+    if (statBranches) statBranches.textContent = 'active in last 5 days';
+    if (statExpired) statExpired.textContent = 'across last 5 days';
+    if (statPending) statPending.textContent = 'today only';
+  } else {
+    if (statLabels[0]) statLabels[0].textContent = 'Submissions today';
+    if (statLabels[1]) statLabels[1].textContent = 'My branch';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending';
+    if (statSubs) statSubs.textContent = 'of 2 expected';
+    if (statBranches) statBranches.textContent = 'your branch only';
+    if (statExpired) statExpired.textContent = 'today for your branch';
+    if (statPending) statPending.textContent = 'submissions needed today';
+  }
+
+  const branchFilter = document.getElementById('f-branch');
+  const exportBtn = document.getElementById('export-btn');
+  if (currentRole === 'merchandiser') {
+    if (branchFilter) branchFilter.style.display = 'none';
+    if (exportBtn) exportBtn.style.display = 'none';
+  } else {
+    if (branchFilter) branchFilter.style.display = '';
+    if (exportBtn) exportBtn.style.display = '';
+  }
+
+  const expSubs = scopeSubs.filter(s => s.expiredItems?.length > 0);
   document.getElementById('alert-section').innerHTML = expSubs.length > 0
-    ? `<div class="sec-hdr" style="margin-top:0">Alerts</div>` +
+    ? `<div class="sec-hdr" style="margin-top:0">${currentRole === 'merchandiser' ? 'My branch alerts' : 'Alerts'}</div>` +
       expSubs.map(s => s.expiredItems.map(e => `
         <div class="alert-box">
           <div class="alert-icon">!</div>
           <div class="alert-txt"><strong>${s.branchShort} (${s.shift})</strong> — ${e.name}: ${e.qty} expired unit(s) — reported by ${s.name}</div>
         </div>`).join('')).join('') : '';
 
-  document.getElementById('br-grid').innerHTML = Object.entries(BRANCH_SHORT).map(([id, name]) => {
-    const bs = ts.filter(s => s.branch === id);
+  const branchEntries = currentRole === 'merchandiser'
+    ? [[currentBranch, BRANCH_SHORT[currentBranch]]]
+    : Object.entries(BRANCH_SHORT);
+
+  document.getElementById('br-grid').innerHTML = branchEntries.map(([id, name]) => {
+    const bs = scopeSubs.filter(s => s.branch === id);
     const am = bs.some(s => s.shift === 'AM'), pm = bs.some(s => s.shift === 'PM');
     const prog = Math.round(((am ? 1 : 0) + (pm ? 1 : 0)) / 2 * 100);
     const cls = prog === 100 ? 'dot-g' : prog > 0 ? 'dot-a' : 'dot-x';
@@ -854,7 +917,7 @@ async function renderDash() {
 
   const listEl = document.getElementById('sub-list');
   if (!filtered.length) {
-    listEl.innerHTML = `<div class="empty">No submissions yet. Merchandisers fill the form to appear here.</div>`;
+    listEl.innerHTML = `<div class="empty">No submissions yet for ${currentRole === 'merchandiser' ? 'your branch today' : 'the last 5 days'}.</div>`;
     return;
   }
   listEl.innerHTML = `<div class="tbl-wrap"><table>
@@ -1104,17 +1167,26 @@ function launchApp(role) {
     : `${currentUser} · ${BRANCH_SHORT[currentBranch]}`;
   document.getElementById('topbar-user-label').textContent = label;
 
+  const nav = document.getElementById('main-nav');
+  const navBtns = document.querySelectorAll('#main-nav .nav-btn');
+  nav.style.display = 'flex';
+
   if (role === 'supervisor') {
-    document.getElementById('main-nav').style.display = 'flex';
-    switchView('dash', document.querySelectorAll('.nav-btn')[1]);
+    navBtns[0].textContent = 'Merchandiser form';
+    navBtns[1].textContent = 'Supervisor dashboard';
+    switchView('dash', navBtns[1]);
   } else {
-    document.getElementById('main-nav').style.display = 'none';
+    navBtns[0].textContent = 'My form';
+    navBtns[1].textContent = 'My branch dashboard';
     document.getElementById('view-merch').classList.add('active');
     document.getElementById('view-dash').classList.remove('active');
+    navBtns[0].classList.add('active');
+    navBtns[1].classList.remove('active');
     document.getElementById('mn').value = currentUser;
     document.getElementById('br').value = currentBranch;
     document.getElementById('mn').setAttribute('readonly', true);
     document.getElementById('br').setAttribute('disabled', true);
+    document.getElementById('f-branch').value = currentBranch;
   }
 
   document.getElementById('curr-date').textContent =
