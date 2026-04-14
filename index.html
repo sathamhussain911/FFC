@@ -290,6 +290,11 @@
       <div class="succ-sub" id="succ-detail"></div>
     </div>
 
+    <div id="sync-banner" class="succ-banner" style="display:block;background:#eef6ff;border-color:#b9d6ff">
+      <div class="succ-title" style="color:#124a8a">Shared shift handover enabled</div>
+      <div class="succ-sub" id="sync-detail" style="color:#2c5f9e">Select branch, shift, and date to auto-load opening stock from the latest verified closing stock.</div>
+    </div>
+
     <div class="form-row" style="max-width:520px">
       <div class="fg">
         <label>Branch</label>
@@ -339,7 +344,7 @@
           <thead>
             <tr>
               <th>Item</th><th>UOM</th><th>Opening</th><th>Received</th><th>Prepared</th>
-              <th>Sold</th><th>Expired</th><th>Returned</th><th class="green">Closing</th><th>Order</th>
+              <th class="green">Sold (auto)</th><th>Expired</th><th>Returned</th><th>Closing (verify)</th><th>Order</th>
             </tr>
           </thead>
           <tbody id="pkg-tb"></tbody>
@@ -380,7 +385,7 @@
           <thead>
             <tr>
               <th>Item</th><th>UOM</th><th>Opening</th><th>Received</th>
-              <th>Used</th><th>Damage</th><th class="green">Closing</th><th>Order</th>
+              <th class="green">Used (auto)</th><th>Damage</th><th>Closing (verify)</th><th>Order</th>
             </tr>
           </thead>
           <tbody id="rm-tb"></tbody>
@@ -499,20 +504,31 @@ let submissions = [];  // local cache, loaded from Supabase on dashboard open
 function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
 function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
 
+
 function buildPkg() {
   const tb = document.getElementById('pkg-tb'); tb.innerHTML = '';
   PKG.forEach((it, i) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><div class="iname">${it.n}</div><div class="icode">${it.c}</div></td>
       <td style="color:var(--text3);font-size:11px">${it.u}</td>
-      ${['op','rc','pr','so','ex','re'].map(f => `<td>${ni(`p${i}_${f}`)}</td>`).join('')}
-      <td class="cl-cell" id="p${i}_cl">—</td><td>${ni(`p${i}_or`)}</td>`;
+      <td>${ni(`p${i}_op`)}</td>
+      <td>${ni(`p${i}_rc`)}</td>
+      <td>${ni(`p${i}_pr`)}</td>
+      <td class="cl-cell" id="p${i}_so">—</td>
+      <td>${ni(`p${i}_ex`)}</td>
+      <td>${ni(`p${i}_re`)}</td>
+      <td>${ni(`p${i}_cl`)}</td>
+      <td>${ni(`p${i}_or`)}</td>`;
     tb.appendChild(tr);
-    ['op','rc','pr','so','ex','re'].forEach(f => {
+
+    const closingInput = document.getElementById(`p${i}_cl`);
+    closingInput.placeholder = 'verify';
+    ['op','rc','pr','cl','ex','re'].forEach(f => {
       document.getElementById(`p${i}_${f}`).addEventListener('input', () => {
-        const v = gv(`p${i}_op`)+gv(`p${i}_rc`)+gv(`p${i}_pr`)-gv(`p${i}_so`)-gv(`p${i}_ex`)-gv(`p${i}_re`);
-        const cl = document.getElementById(`p${i}_cl`);
-        cl.textContent = v; cl.style.color = v < 0 ? 'var(--red)' : '';
+        const v = gv(`p${i}_op`) + gv(`p${i}_rc`) + gv(`p${i}_pr`) - gv(`p${i}_cl`) - gv(`p${i}_ex`) - gv(`p${i}_re`);
+        const sold = document.getElementById(`p${i}_so`);
+        sold.textContent = Math.max(v, 0);
+        sold.style.color = v < 0 ? 'var(--red)' : '';
       });
     });
   });
@@ -538,20 +554,28 @@ function buildIh() {
   });
 }
 
+
 function buildRm() {
   const tb = document.getElementById('rm-tb'); tb.innerHTML = '';
   RM.forEach((it, i) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><div class="iname">${it.n}</div>${it.c ? `<div class="icode">${it.c}</div>` : ''}</td>
       <td style="color:var(--text3);font-size:11px">${it.u}</td>
-      ${['op','rc','us','da'].map(f => `<td>${ni(`rm${i}_${f}`)}</td>`).join('')}
-      <td class="cl-cell" id="rm${i}_cl">—</td><td>${ni(`rm${i}_or`)}</td>`;
+      <td>${ni(`rm${i}_op`)}</td>
+      <td>${ni(`rm${i}_rc`)}</td>
+      <td class="cl-cell" id="rm${i}_us">—</td>
+      <td>${ni(`rm${i}_da`)}</td>
+      <td>${ni(`rm${i}_cl`)}</td>
+      <td>${ni(`rm${i}_or`)}</td>`;
     tb.appendChild(tr);
-    ['op','rc','us','da'].forEach(f => {
+    const closingInput = document.getElementById(`rm${i}_cl`);
+    closingInput.placeholder = 'verify';
+    ['op','rc','cl','da'].forEach(f => {
       document.getElementById(`rm${i}_${f}`).addEventListener('input', () => {
-        const v = gv(`rm${i}_op`)+gv(`rm${i}_rc`)-gv(`rm${i}_us`)-gv(`rm${i}_da`);
-        const cl = document.getElementById(`rm${i}_cl`);
-        cl.textContent = v; cl.style.color = v < 0 ? 'var(--red)' : '';
+        const v = gv(`rm${i}_op`) + gv(`rm${i}_rc`) - gv(`rm${i}_cl`) - gv(`rm${i}_da`);
+        const used = document.getElementById(`rm${i}_us`);
+        used.textContent = Math.max(v, 0);
+        used.style.color = v < 0 ? 'var(--red)' : '';
       });
     });
   });
@@ -574,6 +598,7 @@ function switchTab(t, el) {
 function clearForm() {
   document.querySelectorAll('.ni').forEach(e => e.value = '');
   document.querySelectorAll('.cl-cell').forEach(e => { e.textContent = '—'; e.style.color = ''; });
+  updateSyncBanner('Select branch, shift, and date to auto-load opening stock from the latest verified closing stock.');
   document.getElementById('gr').value = '';
   if (currentRole !== 'merchandiser') {
     document.getElementById('br').value = '';
@@ -586,14 +611,18 @@ function clearForm() {
   switchTab('pkg', document.querySelector('.tab'));
 }
 
+
 function collectPkg() {
-  return PKG.map((it, i) => ({
-    code: it.c, name: it.n, uom: it.u,
-    opening: gv(`p${i}_op`), received: gv(`p${i}_rc`), prepared: gv(`p${i}_pr`),
-    sold: gv(`p${i}_so`), expired: gv(`p${i}_ex`), returned: gv(`p${i}_re`),
-    closing: gv(`p${i}_op`)+gv(`p${i}_rc`)+gv(`p${i}_pr`)-gv(`p${i}_so`)-gv(`p${i}_ex`)-gv(`p${i}_re`),
-    order: gv(`p${i}_or`)
-  }));
+  return PKG.map((it, i) => {
+    const sold = gv(`p${i}_op`) + gv(`p${i}_rc`) + gv(`p${i}_pr`) - gv(`p${i}_cl`) - gv(`p${i}_ex`) - gv(`p${i}_re`);
+    return {
+      code: it.c, name: it.n, uom: it.u,
+      opening: gv(`p${i}_op`), received: gv(`p${i}_rc`), prepared: gv(`p${i}_pr`),
+      sold: Math.max(sold, 0), expired: gv(`p${i}_ex`), returned: gv(`p${i}_re`),
+      closing: gv(`p${i}_cl`),
+      order: gv(`p${i}_or`)
+    };
+  });
 }
 function collectIh() {
   return IH.map((it, i) => ({
@@ -605,14 +634,101 @@ function collectIh() {
     remarks: (document.getElementById(`ih${i}_rem`) || {}).value || ''
   }));
 }
+
 function collectRm() {
-  return RM.map((it, i) => ({
-    code: it.c || '', name: it.n, uom: it.u,
-    opening: gv(`rm${i}_op`), received: gv(`rm${i}_rc`),
-    used: gv(`rm${i}_us`), damage: gv(`rm${i}_da`),
-    closing: gv(`rm${i}_op`)+gv(`rm${i}_rc`)-gv(`rm${i}_us`)-gv(`rm${i}_da`),
-    order: gv(`rm${i}_or`)
-  }));
+  return RM.map((it, i) => {
+    const used = gv(`rm${i}_op`) + gv(`rm${i}_rc`) - gv(`rm${i}_cl`) - gv(`rm${i}_da`);
+    return {
+      code: it.c || '', name: it.n, uom: it.u,
+      opening: gv(`rm${i}_op`), received: gv(`rm${i}_rc`),
+      used: Math.max(used, 0), damage: gv(`rm${i}_da`),
+      closing: gv(`rm${i}_cl`),
+      order: gv(`rm${i}_or`)
+    };
+  });
+}
+
+
+function updateSyncBanner(msg, isWarning = false) {
+  const detail = document.getElementById('sync-detail');
+  if (!detail) return;
+  detail.textContent = msg;
+  detail.style.color = isWarning ? 'var(--red)' : '#2c5f9e';
+}
+
+function applyComputedFields() {
+  PKG.forEach((_, i) => {
+    const sold = gv(`p${i}_op`) + gv(`p${i}_rc`) + gv(`p${i}_pr`) - gv(`p${i}_cl`) - gv(`p${i}_ex`) - gv(`p${i}_re`);
+    const soldCell = document.getElementById(`p${i}_so`);
+    if (soldCell) {
+      soldCell.textContent = Math.max(sold, 0);
+      soldCell.style.color = sold < 0 ? 'var(--red)' : '';
+    }
+  });
+  RM.forEach((_, i) => {
+    const used = gv(`rm${i}_op`) + gv(`rm${i}_rc`) - gv(`rm${i}_cl`) - gv(`rm${i}_da`);
+    const usedCell = document.getElementById(`rm${i}_us`);
+    if (usedCell) {
+      usedCell.textContent = Math.max(used, 0);
+      usedCell.style.color = used < 0 ? 'var(--red)' : '';
+    }
+  });
+}
+
+function fillOpeningFromSubmission(source) {
+  if (!source) return;
+  source.pkg.forEach((row, i) => {
+    const op = document.getElementById(`p${i}_op`);
+    if (op) op.value = row.closing ?? 0;
+  });
+  source.rm.forEach((row, i) => {
+    const op = document.getElementById(`rm${i}_op`);
+    if (op) op.value = row.closing ?? 0;
+  });
+  applyComputedFields();
+}
+
+async function loadCarryForwardStock() {
+  const branch = document.getElementById('br').value;
+  const shift = document.getElementById('sh').value;
+  const date = document.getElementById('fd').value;
+  if (!branch || !shift || !date) {
+    updateSyncBanner('Select branch, shift, and date to auto-load opening stock from the latest verified closing stock.');
+    return;
+  }
+
+  const { data, error } = await db
+    .from('submissions')
+    .select('*')
+    .eq('branch', branch)
+    .lte('sub_date', date)
+    .order('sub_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error('Carry-forward load error:', error);
+    updateSyncBanner('Could not load carry-forward stock from the shared dashboard.', true);
+    return;
+  }
+
+  const rows = (data || []).map(rowToSub);
+  let source = null;
+
+  if (shift === 'PM') {
+    source = rows.find(r => r.date === date && r.shift === 'AM') ||
+             rows.find(r => r.date < date);
+  } else {
+    source = rows.find(r => r.date < date);
+  }
+
+  if (!source) {
+    updateSyncBanner('No earlier verified closing stock found for this branch yet. Enter the opening balances manually for the first run.');
+    return;
+  }
+
+  fillOpeningFromSubmission(source);
+  updateSyncBanner(`Opening stock loaded from ${source.branchShort} ${source.shift} shift closing on ${source.date} at ${source.time}. Only adjust if there is a variance such as damage, theft, or recount.`);
 }
 
 async function submitForm() {
@@ -1005,6 +1121,18 @@ function launchApp(role) {
     new Date().toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
   document.getElementById('fd').value = new Date().toISOString().split('T')[0];
   buildPkg(); buildIh(); buildRm(); renderDash();
+
+  ['br','sh','fd'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.syncBound) {
+      el.addEventListener('change', loadCarryForwardStock);
+      el.dataset.syncBound = '1';
+    }
+  });
+
+  if (role === 'merchandiser') {
+    loadCarryForwardStock();
+  }
 }
 
 function doLogout() {
