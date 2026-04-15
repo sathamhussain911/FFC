@@ -317,6 +317,7 @@
           <option value="moe">Carrefour Mall of Emirates</option>
           <option value="deira">Carrefour Deira City</option>
           <option value="marina">Carrefour Marina Mall</option>
+          <option value="vegetable_souk">Vegetable Souk</option>
         </select>
       </div>
       <div class="fg">
@@ -423,8 +424,8 @@
   <!-- ===== SUPERVISOR DASHBOARD ===== -->
   <div id="view-dash" class="view">
     <div class="stat-grid">
-      <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 10 expected</div></div>
-      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 5 branches</div></div>
+      <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
+      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 6 branches</div></div>
       <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
       <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
     </div>
@@ -515,38 +516,66 @@ const BRANCHES = {
   dfc: 'Carrefour Dubai Festival',
   moe: 'Carrefour Mall of Emirates',
   deira: 'Carrefour Deira City',
-  marina: 'Carrefour Marina Mall'
+  marina: 'Carrefour Marina Mall',
+  vegetable_souk: 'Vegetable Souk'
 };
-const BRANCH_SHORT = {festival:'Festival City',dfc:'Dubai Festival',moe:'Mall of Emirates',deira:'Deira City',marina:'Marina Mall'};
+const BRANCH_SHORT = {
+  festival:'Festival City',
+  dfc:'Dubai Festival',
+  moe:'Mall of Emirates',
+  deira:'Deira City',
+  marina:'Marina Mall',
+  vegetable_souk:'Vegetable Souk'
+};
 
-const PKG = [
-  {c:'303068',n:'Fruit Platter 780g',u:'PC'},{c:'303214',n:'Watermelon Chunks 400g',u:'PC'},
-  {c:'303145',n:'Pineapple Chunks 400g',u:'PC'},{c:'303213',n:'Watermelon Chunks 250g',u:'PC'},
-  {c:'303144',n:'Pineapple Chunks 250g',u:'PC'},{c:'303160',n:'Pomegranate Seeds 250g',u:'PC'},
-  {c:'303124',n:'Mix Fruit Salad 400g',u:'PC'},{c:'303206',n:'Tri Colour Salad 400g',u:'PC'},
-  {c:'303123',n:'Mix Fruit Salad 250g',u:'PC'},{c:'303205',n:'Tri Colour Salad 250g',u:'PC'},
-  {c:'303102',n:'Mango Chunks 250g',u:'PC'},{c:'303233',n:'Pomegranate Seeds 125g',u:'PC'},
-  {c:'303218',n:'Watermelon Slices 400g',u:'PC'},{c:'303153',n:'Pineapple Spears 300g',u:'PC'},
-  {c:'303216',n:'Watermelon Juice 330ml',u:'PC'},{c:'303217',n:'Watermelon Juice 500ml',u:'PC'},
-  {c:'303215',n:'Watermelon Juice 1000ml',u:'PC'},{c:'303019',n:'Betty Red Pears Juice 330ml',u:'PC'},
-  {c:'303015',n:'Beetroot Juice 330ml',u:'PC'},{c:'303148',n:'Pineapple Juice 330ml',u:'PC'},
-  {c:'303149',n:'Pineapple Juice 500ml',u:'PC'},{c:'303104',n:'Mango Juice 330ml',u:'PC'},
-  {c:'303105',n:'Mango Juice 500ml',u:'PC'},{c:'303092',n:'Turmeric Shot 100ml',u:'PC'},
-  {c:'303055',n:'Ginger Shot 100ml',u:'PC'}
-];
-const IH = [
-  {n:'Carrot Juice 330ml',u:'PC'},{n:'Carrot Juice 500ml',u:'PC'},{n:'Carrot Juice 1L',u:'PC'},
-  {n:'Orange Carrot Juice 330ml',u:'PC'},{n:'Orange Carrot Juice 500ml',u:'PC'},
-  {n:'Orange Juice 330ml',u:'PC'},{n:'Orange Juice 500ml',u:'PC'},{n:'Orange Juice 1L',u:'PC'},
-  {n:'Create your own Juice 330ml',u:'PC'},{n:'Create your own Juice 500ml',u:'PC'},
-  {n:'Create your own fruit salad 250g',u:'PC'}
-];
-const RM = [
-  {c:'202003',n:'Carrot',u:'KG'},{c:'202015',n:'Orange Valencia',u:'KG'},{c:'202009',n:'Watermelon',u:'KG'},
-  {c:'202039',n:'Pineapple',u:'KG'},{c:'202025',n:'Mango',u:'KG'},{c:'202019',n:'Strawberry',u:'KG'},
-  {c:'202017',n:'Blueberry',u:'KG'},{c:'202066',n:'Cucumber',u:'KG'},{c:'202020',n:'Baby Spinach',u:'KG'},
-  {c:'202012',n:'Lemon',u:'KG'},{c:'202054',n:'Banana',u:'KG'},{c:'202016',n:'Mint',u:'KG'}
-];
+let PKG = [];
+let IH = [];
+let RM = [];
+
+function normalizeItemRow(row) {
+  return {
+    c: row.item_code || '',
+    n: row.item_name || '',
+    u: row.uom || '',
+    type: row.category || '',
+    item_id: row.item_id || null,
+    display_order: row.display_order || 0
+  };
+}
+
+async function loadBranchItems(branch) {
+  if (!branch) {
+    PKG = [];
+    IH = [];
+    RM = [];
+    buildPkg();
+    buildIh();
+    buildRm();
+    return;
+  }
+
+  const { data, error } = await db.rpc('list_branch_items', { p_branch: branch });
+  if (error) {
+    console.error('Item load error:', error);
+    showToast('Could not load branch items. Check Supabase item setup.');
+    return;
+  }
+
+  const rows = (data || []).map(normalizeItemRow);
+  PKG = rows.filter(r => r.item_type === 'packaged');
+  IH  = rows.filter(r => r.item_type === 'inhouse');
+  RM  = rows.filter(r => r.item_type === 'raw_material');
+
+  buildPkg();
+  buildIh();
+  buildRm();
+}
+
+async function handleBranchChange() {
+  const branch = document.getElementById('br').value;
+  await loadBranchItems(branch);
+  updateCarryForwardButtonVisibility();
+}
 
 // ===== SUPABASE CONFIG — REPLACE THESE TWO VALUES =====
 const SUPABASE_URL = 'https://uwkxkuenjinsftknmimm.supabase.co';
@@ -663,6 +692,7 @@ function clearForm() {
     document.getElementById('br').value = '';
     document.getElementById('sh').value = '';
     document.getElementById('mn').value = '';
+    loadBranchItems('');
   } else {
     document.getElementById('sh').value = '';
   }
@@ -683,7 +713,7 @@ function collectPkg() {
 
 function collectIh() {
   return IH.map((it, i) => ({
-    name: it.n, uom: it.u,
+    code: it.c || '', name: it.n, uom: it.u,
     am: gv(`ih${i}_am`), pm: gv(`ih${i}_pm`),
     total: gv(`ih${i}_tot`),
     sold: gv(`ih${i}_so`), expired: gv(`ih${i}_ex`),
@@ -713,13 +743,21 @@ function updateSyncBanner(msg, isWarning = false) {
 
 function fillOpeningFromSubmission(source) {
   if (!source) return;
-  source.pkg.forEach((row, i) => {
+
+  const pkgMap = new Map((source.pkg || []).map(row => [String(row.code || row.name), row]));
+  PKG.forEach((it, i) => {
+    const key = String(it.c || it.n);
+    const prev = pkgMap.get(key);
     const op = document.getElementById(`p${i}_op`);
-    if (op) op.value = row.closing ?? 0;
+    if (op && prev) op.value = prev.closing ?? 0;
   });
-  source.rm.forEach((row, i) => {
+
+  const rmMap = new Map((source.rm || []).map(row => [String(row.code || row.name), row]));
+  RM.forEach((it, i) => {
+    const key = String(it.c || it.n);
+    const prev = rmMap.get(key);
     const op = document.getElementById(`rm${i}_op`);
-    if (op) op.value = row.closing ?? 0;
+    if (op && prev) op.value = prev.closing ?? 0;
   });
 }
 
@@ -1083,7 +1121,7 @@ async function renderDash() {
     : getFiltered();
   const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
   const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
-  const expectedCount = currentRole === 'merchandiser' ? 2 : 10;
+  const expectedCount = currentRole === 'merchandiser' ? 2 : Object.keys(BRANCHES).length * 2;
   const supervisorTodayCount = allToday.length;
 
   document.getElementById('ds-sub').textContent  = scopeSubs.length;
@@ -1414,7 +1452,7 @@ async function doLogin() {
       currentUser = row.display_name;
       currentUserId = row.user_id || null;
       currentBranch = row.branch || null;
-      launchApp('merchandiser');
+      await launchApp('merchandiser');
     } else if (currentRole === 'supervisor') {
       const pin = document.getElementById('login-pin').value.trim();
       if (!pin) { document.getElementById('login-pin').focus(); return; }
@@ -1428,7 +1466,7 @@ async function doLogin() {
       currentUser = row.display_name;
       currentUserId = row.user_id || null;
       currentBranch = null;
-      launchApp('supervisor');
+      await launchApp('supervisor');
     } else {
       const pin = document.getElementById('login-prod-pin').value.trim();
       if (!pin) { document.getElementById('login-prod-pin').focus(); return; }
@@ -1442,7 +1480,7 @@ async function doLogin() {
       currentUser = row.display_name;
       currentUserId = row.user_id || null;
       currentBranch = null;
-      launchApp('production');
+      await launchApp('production');
     }
   } catch (e) {
     errEl.textContent = e.message || 'Login failed.';
@@ -1450,7 +1488,7 @@ async function doLogin() {
   }
 }
 
-function launchApp(role) {
+async function launchApp(role) {
   currentRole = role;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
@@ -1502,9 +1540,11 @@ function launchApp(role) {
   document.getElementById('curr-date').textContent =
     new Date().toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
   enforceCurrentDateLock();
-  buildPkg(); buildIh(); buildRm();
+  await loadBranchItems(role === 'merchandiser' ? currentBranch : ((document.getElementById('br') || {}).value || ''));
   if (role === 'production') {
     renderProductionSummary();
+  } else if (role === 'supervisor') {
+    renderProductionOrders();
   } else {
     renderDash();
   }
@@ -1537,6 +1577,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const shiftEl = document.getElementById('sh');
   if (shiftEl) {
     shiftEl.addEventListener('change', updateCarryForwardButtonVisibility);
+  }
+  const branchEl = document.getElementById('br');
+  if (branchEl) {
+    branchEl.addEventListener('change', handleBranchChange);
   }
   updateCarryForwardButtonVisibility();
 });
