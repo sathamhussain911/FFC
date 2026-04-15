@@ -533,6 +533,8 @@ const BRANCH_SHORT = {
 let PKG = [];
 let IH = [];
 let RM = [];
+let branchItemCache = {};
+let builtTabs = { pkg:false, ih:false, rm:false };
 
 function normalizeItemRow(row) {
   const resolvedType = row.item_type || row.type || '';
@@ -544,15 +546,29 @@ function normalizeItemRow(row) {
     item_type: resolvedType,
     category: row.category || '',
     item_id: row.item_id || null,
-    display_order: row.display_order || 0
+    display_order: Number(row.display_order || 0)
   };
 }
 
-async function loadBranchItems(branch) {
+async function loadBranchItems(branch, forceRefresh = false) {
   if (!branch) {
     PKG = [];
     IH = [];
     RM = [];
+    branchItemCache = {};
+    builtTabs = { pkg:false, ih:false, rm:false };
+    buildPkg();
+    buildIh();
+    buildRm();
+    return;
+  }
+
+  if (!forceRefresh && branchItemCache[branch]) {
+    const cached = branchItemCache[branch];
+    PKG = cached.PKG;
+    IH = cached.IH;
+    RM = cached.RM;
+    builtTabs = { pkg:false, ih:false, rm:false };
     buildPkg();
     buildIh();
     buildRm();
@@ -567,10 +583,12 @@ async function loadBranchItems(branch) {
   }
 
   const rows = (data || []).map(normalizeItemRow);
-  console.log('Loaded branch items for', branch, rows);
+  console.log('Loaded branch items for', branch, rows.length);
   PKG = rows.filter(r => r.item_type === 'packaged');
   IH  = rows.filter(r => r.item_type === 'inhouse');
   RM  = rows.filter(r => r.item_type === 'raw_material');
+  branchItemCache[branch] = { PKG, IH, RM };
+  builtTabs = { pkg:false, ih:false, rm:false };
 
   buildPkg();
   buildIh();
@@ -623,9 +641,26 @@ function renderGrouped(tableBody, items, colspan, rowBuilder) {
   });
 }
 
+function sortItemsForDisplay(items) {
+  return [...items].sort((a, b) => {
+    const ao = Number(a.display_order || 0);
+    const bo = Number(b.display_order || 0);
+    if (ao !== bo) return ao - bo;
+    const ag = String(a.category || a.type || '');
+    const bg = String(b.category || b.type || '');
+    if (ag !== bg) return ag.localeCompare(bg);
+    return String(a.n || '').localeCompare(String(b.n || ''));
+  });
+}
+
 function buildPkg() {
   const tb = document.getElementById('pkg-tb');
-  renderGrouped(tb, PKG, 10, (it, i) => `
+  if (!document.getElementById('tab-pkg') || document.getElementById('tab-pkg').style.display === 'none') {
+    tb.innerHTML = '<tr><td colspan="10" class="empty">Open this tab to load items.</td></tr>';
+    builtTabs.pkg = false;
+    return;
+  }
+  renderGrouped(tb, sortItemsForDisplay(PKG), 10, (it, i) => `
       <td><div class="iname">${esc(it.n)}</div><div class="icode">${esc(it.c)}</div></td>
       <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       <td>${ni(`p${i}_op`)}</td>
@@ -636,20 +671,32 @@ function buildPkg() {
       <td>${ni(`p${i}_re`)}</td>
       <td>${ni(`p${i}_cl`)}</td>
       <td>${ni(`p${i}_or`)}</td>`);
+  builtTabs.pkg = true;
 }
 
 function buildIh() {
   const tb = document.getElementById('ih-tb');
-  renderGrouped(tb, IH, 10, (it, i) => `
+  if (!document.getElementById('tab-ih') || document.getElementById('tab-ih').style.display === 'none') {
+    tb.innerHTML = '<tr><td colspan="10" class="empty">Open this tab to load items.</td></tr>';
+    builtTabs.ih = false;
+    return;
+  }
+  renderGrouped(tb, sortItemsForDisplay(IH), 10, (it, i) => `
       <td class="iname">${esc(it.n)}</td>
       <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       ${['am','pm','tot','so','ex','sa','cr'].map(f => `<td>${ni(`ih${i}_${f}`)}</td>`).join('')}
       <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`);
+  builtTabs.ih = true;
 }
 
 function buildRm() {
   const tb = document.getElementById('rm-tb');
-  renderGrouped(tb, RM, 8, (it, i) => `
+  if (!document.getElementById('tab-rm') || document.getElementById('tab-rm').style.display === 'none') {
+    tb.innerHTML = '<tr><td colspan="8" class="empty">Open this tab to load items.</td></tr>';
+    builtTabs.rm = false;
+    return;
+  }
+  renderGrouped(tb, sortItemsForDisplay(RM), 8, (it, i) => `
       <td><div class="iname">${esc(it.n)}</div>${it.c ? `<div class="icode">${esc(it.c)}</div>` : ''}</td>
       <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       <td>${ni(`rm${i}_op`)}</td>
@@ -658,6 +705,7 @@ function buildRm() {
       <td>${ni(`rm${i}_da`)}</td>
       <td>${ni(`rm${i}_cl`)}</td>
       <td>${ni(`rm${i}_or`)}</td>`);
+  builtTabs.rm = true;
 }
 
 function switchView(v, btn) {
@@ -674,6 +722,9 @@ function switchTab(t, el) {
   ['pkg','ih','rm'].forEach(x => document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none');
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
+  if (t === 'pkg' && !builtTabs.pkg) buildPkg();
+  if (t === 'ih' && !builtTabs.ih) buildIh();
+  if (t === 'rm' && !builtTabs.rm) buildRm();
 }
 
 
@@ -722,6 +773,26 @@ function clearForm() {
   switchTab('pkg', document.querySelector('.tab'));
 }
 
+
+
+function hasMeaningfulValue(row, keys) {
+  return keys.some(k => {
+    const v = row[k];
+    return typeof v === 'number' ? v !== 0 : String(v || '').trim() !== '';
+  });
+}
+
+function compactPkgRows(rows) {
+  return rows.filter(r => hasMeaningfulValue(r, ['opening','received','prepared','sold','expired','returned','closing','order']));
+}
+
+function compactIhRows(rows) {
+  return rows.filter(r => hasMeaningfulValue(r, ['am','pm','total','sold','expired','sampling','custReturn','remarks']));
+}
+
+function compactRmRows(rows) {
+  return rows.filter(r => hasMeaningfulValue(r, ['opening','received','used','damage','closing','order']));
+}
 
 function collectPkg() {
   return PKG.map((it, i) => ({
@@ -830,9 +901,9 @@ async function submitForm() {
   submitBtn.textContent = 'Saving...';
   submitBtn.disabled = true;
 
-  const pkgRows = collectPkg();
-  const ihRows = collectIh();
-  const rmRows = collectRm();
+  const pkgRows = compactPkgRows(collectPkg());
+  const ihRows = compactIhRows(collectIh());
+  const rmRows = compactRmRows(collectRm());
   const expFlags = pkgRows.filter(r => Number(r.expired) > 0).map(r => ({name: r.name, qty: r.expired}));
   const now = new Date();
   const subDate = currentRole === 'merchandiser' ? now.toISOString().split('T')[0] : (document.getElementById('fd').value || now.toISOString().split('T')[0]);
@@ -981,13 +1052,11 @@ async function loadProductionOrders() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (currentRole !== 'supervisor') {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 4);
-    const startDateStr = startDate.toISOString().split('T')[0];
-    query = query.gte('order_date', startDateStr);
-  }
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (currentRole === 'supervisor' ? 14 : 4));
+  const startDateStr = startDate.toISOString().split('T')[0];
+  query = query.gte('order_date', startDateStr);
 
   const { data, error } = await query;
 
