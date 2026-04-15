@@ -585,8 +585,8 @@ async function handleBranchChange() {
 }
 
 // ===== SUPABASE CONFIG — REPLACE THESE TWO VALUES =====
-const SUPABASE_URL = 'https://jaunjwnlbfkabyxslvak.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphdW5qd25sYmZrYWJ5eHNsdmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMjg4NjIsImV4cCI6MjA5MTgwNDg2Mn0.rg0zgdvEqQXBdXkH4LIu1_nlWuMc6QNkIQFtp831Y7c';// =========================================================
+const SUPABASE_URL = 'https://acxwbrjxldzywhqphsji.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeHdicmp4bGR6eXdocXBoc2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjIxMTksImV4cCI6MjA5MTYzODExOX0.yjSXKq86KjMZAWkvQbLq1dVZJY_6TFLWtvwe7kBIIpI';// =========================================================
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -597,12 +597,37 @@ let productionOrders = [];
 function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
 function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
 
-function buildPkg() {
-  const tb = document.getElementById('pkg-tb'); tb.innerHTML = '';
-  PKG.forEach((it, i) => {
+
+function esc(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function makeGroupHeader(label, colspan) {
+  return `<tr class="group-row"><td colspan="${colspan}" style="background:var(--green-light);color:var(--green-text);font-weight:600;padding:7px 8px">${esc(label)}</td></tr>`;
+}
+
+function renderGrouped(tableBody, items, colspan, rowBuilder) {
+  tableBody.innerHTML = '';
+  let lastGroup = null;
+  items.forEach((it, i) => {
+    const group = it.category || it.type || 'Other';
+    if (group !== lastGroup) {
+      const gtr = document.createElement('tr');
+      gtr.innerHTML = makeGroupHeader(group, colspan);
+      tableBody.appendChild(gtr);
+      lastGroup = group;
+    }
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><div class="iname">${it.n}</div><div class="icode">${it.c}</div></td>
-      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+    tr.innerHTML = rowBuilder(it, i);
+    tableBody.appendChild(tr);
+  });
+}
+
+function buildPkg() {
+  const tb = document.getElementById('pkg-tb');
+  renderGrouped(tb, PKG, 10, (it, i) => `
+      <td><div class="iname">${esc(it.n)}</div><div class="icode">${esc(it.c)}</div></td>
+      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       <td>${ni(`p${i}_op`)}</td>
       <td>${ni(`p${i}_rc`)}</td>
       <td>${ni(`p${i}_pr`)}</td>
@@ -610,40 +635,30 @@ function buildPkg() {
       <td>${ni(`p${i}_ex`)}</td>
       <td>${ni(`p${i}_re`)}</td>
       <td>${ni(`p${i}_cl`)}</td>
-      <td>${ni(`p${i}_or`)}</td>`;
-    tb.appendChild(tr);
-  });
+      <td>${ni(`p${i}_or`)}</td>`);
 }
 
 function buildIh() {
-  const tb = document.getElementById('ih-tb'); tb.innerHTML = '';
-  IH.forEach((it, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="iname">${it.n}</td>
-      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+  const tb = document.getElementById('ih-tb');
+  renderGrouped(tb, IH, 10, (it, i) => `
+      <td class="iname">${esc(it.n)}</td>
+      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       ${['am','pm','tot','so','ex','sa','cr'].map(f => `<td>${ni(`ih${i}_${f}`)}</td>`).join('')}
-      <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`;
-    tb.appendChild(tr);
-  });
+      <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`);
 }
 
-
 function buildRm() {
-  const tb = document.getElementById('rm-tb'); tb.innerHTML = '';
-  RM.forEach((it, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><div class="iname">${it.n}</div>${it.c ? `<div class="icode">${it.c}</div>` : ''}</td>
-      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+  const tb = document.getElementById('rm-tb');
+  renderGrouped(tb, RM, 8, (it, i) => `
+      <td><div class="iname">${esc(it.n)}</div>${it.c ? `<div class="icode">${esc(it.c)}</div>` : ''}</td>
+      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
       <td>${ni(`rm${i}_op`)}</td>
       <td>${ni(`rm${i}_rc`)}</td>
       <td>${ni(`rm${i}_us`)}</td>
       <td>${ni(`rm${i}_da`)}</td>
       <td>${ni(`rm${i}_cl`)}</td>
-      <td>${ni(`rm${i}_or`)}</td>`;
-    tb.appendChild(tr);
-  });
+      <td>${ni(`rm${i}_or`)}</td>`);
 }
-
 
 function switchView(v, btn) {
   document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
