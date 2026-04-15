@@ -445,6 +445,7 @@
         <option value="moe">Mall of Emirates</option>
         <option value="deira">Deira City</option>
         <option value="marina">Marina Mall</option>
+        <option value="vegetable_souk">Vegetable Souk</option>
       </select>
       <select id="f-shift" onchange="renderDash()">
         <option value="">All shifts</option>
@@ -484,6 +485,7 @@
         <option value="moe">Mall of Emirates</option>
         <option value="deira">Deira City</option>
         <option value="marina">Marina Mall</option>
+        <option value="vegetable_souk">Vegetable Souk</option>
       </select>
       <button class="btn" onclick="renderProductionOrders()">Refresh</button>
     </div>
@@ -533,11 +535,14 @@ let IH = [];
 let RM = [];
 
 function normalizeItemRow(row) {
+  const resolvedType = row.item_type || row.type || '';
   return {
     c: row.item_code || '',
     n: row.item_name || '',
     u: row.uom || '',
-    type: row.category || '',
+    type: resolvedType,
+    item_type: resolvedType,
+    category: row.category || '',
     item_id: row.item_id || null,
     display_order: row.display_order || 0
   };
@@ -562,6 +567,7 @@ async function loadBranchItems(branch) {
   }
 
   const rows = (data || []).map(normalizeItemRow);
+  console.log('Loaded branch items for', branch, rows);
   PKG = rows.filter(r => r.item_type === 'packaged');
   IH  = rows.filter(r => r.item_type === 'inhouse');
   RM  = rows.filter(r => r.item_type === 'raw_material');
@@ -569,6 +575,7 @@ async function loadBranchItems(branch) {
   buildPkg();
   buildIh();
   buildRm();
+  if (rows.length === 0) showToast('No items mapped for this branch.');
 }
 
 async function handleBranchChange() {
@@ -578,8 +585,8 @@ async function handleBranchChange() {
 }
 
 // ===== SUPABASE CONFIG — REPLACE THESE TWO VALUES =====
-const SUPABASE_URL = 'https://uwkxkuenjinsftknmimm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3a3hrdWVuamluc2Z0a25taW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjM3MjgsImV4cCI6MjA5MTczOTcyOH0.ZKFY_jDtLi9k5y78JgHAQBABB3m0boQjVRKDQbRJp_o';// =========================================================
+const SUPABASE_URL = 'https://jaunjwnlbfkabyxslvak.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphdW5qd25sYmZrYWJ5eHNsdmFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMjg4NjIsImV4cCI6MjA5MTgwNDg2Mn0.rg0zgdvEqQXBdXkH4LIu1_nlWuMc6QNkIQFtp831Y7c';// =========================================================
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
