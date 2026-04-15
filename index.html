@@ -167,7 +167,7 @@
   .login-icon svg { width: 22px; height: 22px; fill: #fff; }
   .login-title { font-size: 16px; font-weight: 600; }
   .login-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
   .role-card { border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.15s; background: var(--bg); }
   .role-card:hover { border-color: var(--green); background: var(--green-light); }
   .role-card.selected { border-color: var(--green); background: var(--green-light); }
@@ -225,16 +225,20 @@
         <div class="role-lbl">Supervisor</div>
         <div class="role-desc">View dashboard & reports</div>
       </div>
+      <div class="role-card" id="role-prod" onclick="selectRole('production')">
+        <div class="role-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 7h-1V6a4 4 0 0 0-8 0v1H9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-7-1a2 2 0 1 1 4 0v1h-4V6zm2 11-4-4h2v-3h4v3h2l-4 4z"/></svg>
+        </div>
+        <div class="role-lbl">Production</div>
+        <div class="role-desc">View queue & update status</div>
+      </div>
     </div>
 
     <div class="login-fields" id="merch-fields" style="display:none">
       <div class="fg">
         <label>Select your name</label>
         <select id="login-name">
-          <option value="">Select name...</option>
-          <option value="Satham">Satham</option>
-          <option value="Syeed">Syeed</option>
-          <option value="Nidhesh">Nidhesh</option>
+          <option value="">Loading names...</option>
         </select>
       </div>
       <div class="fg">
@@ -247,6 +251,13 @@
       <div class="fg">
         <label>Supervisor PIN</label>
         <input type="password" id="login-pin" placeholder="Enter PIN" maxlength="6">
+      </div>
+    </div>
+
+    <div class="login-fields" id="prod-fields" style="display:none">
+      <div class="fg">
+        <label>Production PIN</label>
+        <input type="password" id="login-prod-pin" placeholder="Enter PIN" maxlength="6">
       </div>
     </div>
 
@@ -278,8 +289,10 @@
 
   <!-- Nav (supervisor only) -->
   <div class="nav" id="main-nav" style="display:none">
-    <button class="nav-btn active" onclick="switchView('merch',this)">Merchandiser form</button>
-    <button class="nav-btn" onclick="switchView('dash',this)">Supervisor dashboard</button>
+    <button class="nav-btn active" data-role="merchandiser,supervisor" onclick="switchView('merch',this)">Merchandiser form</button>
+    <button class="nav-btn" data-role="merchandiser,supervisor" onclick="switchView('dash',this)">Supervisor dashboard</button>
+    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-orders',this)">Production orders</button>
+    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-summary',this)">Production summary</button>
   </div>
 
   <!-- ===== MERCHANDISER VIEW ===== -->
@@ -320,12 +333,12 @@
       </div>
       <div class="fg">
         <label>Date</label>
-        <input type="date" id="fd">
+        <input type="date" id="fd" readonly>
       </div>
     </div>
 
-    <div style="display:flex;justify-content:flex-start;margin:8px 0 14px">
-      <button class="btn" type="button" onclick="loadCarryForwardStock()">Load Previous Day Opening Stock</button>
+    <div id="carry-forward-wrap" style="display:none;justify-content:flex-start;margin:8px 0 14px">
+      <button class="btn" id="carry-forward-btn" type="button" onclick="loadCarryForwardStock()">Load Previous Day Opening Stock</button>
     </div>
 
     <div class="tab-bar">
@@ -451,6 +464,46 @@
     <div id="sub-list"></div>
   </div>
 
+  <!-- ===== PRODUCTION ORDERS ===== -->
+  <div id="view-prod-orders" class="view">
+    <div class="sec-hdr" style="margin-top:0">Production order review</div>
+    <div class="filter-row">
+      <label>Filter:</label>
+      <select id="po-status" onchange="renderProductionOrders()">
+        <option value="">All statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Sent to Production">Sent to Production</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <select id="po-branch" onchange="renderProductionOrders()">
+        <option value="">All branches</option>
+        <option value="festival">Festival City</option>
+        <option value="dfc">Dubai Festival</option>
+        <option value="moe">Mall of Emirates</option>
+        <option value="deira">Deira City</option>
+        <option value="marina">Marina Mall</option>
+      </select>
+      <button class="btn" onclick="renderProductionOrders()">Refresh</button>
+    </div>
+    <div id="prod-orders-list"></div>
+  </div>
+
+  <!-- ===== PRODUCTION SUMMARY ===== -->
+  <div id="view-prod-summary" class="view">
+    <div class="sec-hdr" style="margin-top:0">Consolidated production summary</div>
+    <div class="filter-row">
+      <label>Summary:</label>
+      <select id="ps-scope" onchange="renderProductionSummary()">
+        <option value="all">All except rejected</option>
+        <option value="active">Approved + sent</option>
+        <option value="completed">Completed only</option>
+      </select>
+      <button class="btn" onclick="renderProductionSummary()">Refresh</button>
+    </div>
+    <div id="prod-summary-list"></div>
+  </div>
+
 </div><!-- end .app -->
 </div><!-- end #main-app -->
 
@@ -496,13 +549,14 @@ const RM = [
 ];
 
 // ===== SUPABASE CONFIG — REPLACE THESE TWO VALUES =====
-const SUPABASE_URL = 'https://acxwbrjxldzywhqphsji.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeHdicmp4bGR6eXdocXBoc2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjIxMTksImV4cCI6MjA5MTYzODExOX0.yjSXKq86KjMZAWkvQbLq1dVZJY_6TFLWtvwe7kBIIpI';// =========================================================
+const SUPABASE_URL = 'https://uwkxkuenjinsftknmimm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3a3hrdWVuamluc2Z0a25taW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjM3MjgsImV4cCI6MjA5MTczOTcyOH0.ZKFY_jDtLi9k5y78JgHAQBABB3m0boQjVRKDQbRJp_o';// =========================================================
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let submissions = [];  // local cache, loaded from Supabase on dashboard open
+let productionOrders = [];
 
 function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
 function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
@@ -561,6 +615,8 @@ function switchView(v, btn) {
   document.getElementById('view-' + v).classList.add('active');
   btn.classList.add('active');
   if (v === 'dash') renderDash();
+  if (v === 'prod-orders') renderProductionOrders();
+  if (v === 'prod-summary') renderProductionSummary();
 }
 
 function switchTab(t, el) {
@@ -569,9 +625,39 @@ function switchTab(t, el) {
   el.classList.add('active');
 }
 
+
+function updateCarryForwardButtonVisibility() {
+  const wrap = document.getElementById('carry-forward-wrap');
+  const shift = (document.getElementById('sh') || {}).value || '';
+  if (!wrap) return;
+  wrap.style.display = shift === 'AM' ? 'flex' : 'none';
+  if (shift === 'AM') {
+    updateSyncBanner('AM shift selected. Select branch and date, then click Load Previous Day Opening Stock.');
+  } else if (shift === 'PM') {
+    updateSyncBanner('PM shift selected. All fields are manual. Previous day opening stock load is available only for AM shift.');
+  } else {
+    updateSyncBanner('Select shift first. The previous day opening stock button appears only for AM shift.');
+  }
+}
+
+function enforceCurrentDateLock() {
+  const fd = document.getElementById('fd');
+  if (!fd) return;
+  const today = new Date().toISOString().split('T')[0];
+  fd.value = today;
+  fd.min = today;
+  fd.max = today;
+  if (currentRole === 'merchandiser') {
+    fd.setAttribute('readonly', true);
+    fd.setAttribute('disabled', true);
+  } else {
+    fd.removeAttribute('disabled');
+  }
+}
+
 function clearForm() {
   document.querySelectorAll('.ni').forEach(e => e.value = '');
-  updateSyncBanner('Select branch and date, then click Load Previous Day Opening Stock.');
+  updateCarryForwardButtonVisibility();
   document.getElementById('gr').value = '';
   if (currentRole !== 'merchandiser') {
     document.getElementById('br').value = '';
@@ -580,7 +666,7 @@ function clearForm() {
   } else {
     document.getElementById('sh').value = '';
   }
-  document.getElementById('fd').value = new Date().toISOString().split('T')[0];
+  enforceCurrentDateLock();
   switchTab('pkg', document.querySelector('.tab'));
 }
 
@@ -641,7 +727,7 @@ async function loadCarryForwardStock() {
   const branch = document.getElementById('br').value;
   const date = document.getElementById('fd').value;
   if (!branch || !date) {
-    updateSyncBanner('Select branch and date, then click Load Previous Day Opening Stock.');
+    updateCarryForwardButtonVisibility();
     return;
   }
 
@@ -678,46 +764,70 @@ async function submitForm() {
   const branch = document.getElementById('br').value;
   const shift  = document.getElementById('sh').value;
   const name   = document.getElementById('mn').value.trim();
-  if (!branch || !shift || !name) { showToast('Please fill branch, shift and your name'); return;  }
+  if (!branch || !shift || !name) { showToast('Please fill branch, shift and your name'); return; }
 
   const submitBtn = document.querySelector('.btn-green[onclick="submitForm()"]');
-  submitBtn.textContent = 'Saving...'; submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving...';
+  submitBtn.disabled = true;
 
-  const expFlags = collectPkg().filter(r => r.expired > 0).map(r => ({name: r.name, qty: r.expired}));
+  const pkgRows = collectPkg();
+  const ihRows = collectIh();
+  const rmRows = collectRm();
+  const expFlags = pkgRows.filter(r => Number(r.expired) > 0).map(r => ({name: r.name, qty: r.expired}));
   const now = new Date();
-  const record = {
+  const subDate = currentRole === 'merchandiser' ? now.toISOString().split('T')[0] : (document.getElementById('fd').value || now.toISOString().split('T')[0]);
+  const subTime = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  const productionRows = buildProductionRows({
+    id: null,
+    date: subDate,
+    branch,
+    branchName: BRANCHES[branch],
+    branchShort: BRANCH_SHORT[branch],
+    shift,
+    name
+  }, pkgRows, rmRows);
+
+  const payload = {
     branch,
     branch_name: BRANCHES[branch],
     branch_short: BRANCH_SHORT[branch],
     shift,
     merchandiser: name,
-    sub_date: document.getElementById('fd').value || now.toISOString().split('T')[0],
-    sub_time: now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}),
+    sub_date: subDate,
+    sub_time: subTime,
     remarks: document.getElementById('gr').value || '',
-    expired_items: JSON.stringify(expFlags),
-    pkg_data: JSON.stringify(collectPkg()),
-    ih_data:  JSON.stringify(collectIh()),
-    rm_data:  JSON.stringify(collectRm())
+    expired_items: expFlags,
+    pkg_data: pkgRows,
+    ih_data: ihRows,
+    rm_data: rmRows,
+    production_orders: productionRows,
+    actor_name: currentUser || name,
+    actor_role: currentRole || 'merchandiser'
   };
 
-  const { data, error } = await db.from('submissions').insert([record]).select().single();
+  const { data, error } = await db.rpc('create_submission_with_orders', { p_payload: payload });
 
-  submitBtn.textContent = 'Submit to dashboard'; submitBtn.disabled = false;
+  submitBtn.textContent = 'Submit to dashboard';
+  submitBtn.disabled = false;
 
   if (error) {
-    showToast('Error saving — check Supabase config');
     console.error(error);
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('already exists')) {
+      showToast('A submission for this branch, date, and shift already exists.');
+    } else {
+      showToast('Save failed. Nothing was committed. Check connection or SQL function setup.');
+    }
     return;
   }
 
-  const sub = rowToSub(data);
-  submissions.unshift(sub);
-
   document.getElementById('succ-detail').textContent =
-    `${sub.branchName} — ${sub.shift} shift — submitted by ${sub.name} at ${sub.time}`;
+    `${BRANCHES[branch]} — ${shift} shift — submitted by ${name} at ${subTime}`;
   clearForm();
   document.getElementById('succ-banner').classList.add('show');
-  showToast('Saved to database — visible on supervisor dashboard');
+  showToast(productionRows.length ? `Saved successfully and created ${productionRows.length} production order(s)` : 'Saved successfully');
+
+  if (currentRole === 'supervisor') await renderDash();
 }
 
 // Convert a raw Supabase DB row to the shape the UI expects
@@ -737,6 +847,196 @@ function rowToSub(row) {
     ih:  JSON.parse(row.ih_data  || '[]'),
     rm:  JSON.parse(row.rm_data  || '[]')
   };
+}
+
+function buildProductionRows(submission, pkgRows, rmRows) {
+  const rows = [];
+  pkgRows.filter(r => Number(r.order) > 0).forEach(r => rows.push({
+    submission_id: submission.id,
+    order_date: submission.date,
+    branch: submission.branch,
+    branch_name: submission.branchName,
+    branch_short: submission.branchShort,
+    shift: submission.shift,
+    item_type: 'packaged',
+    item_code: r.code || '',
+    item_name: r.name,
+    uom: r.uom || '',
+    qty: Number(r.order) || 0,
+    submitted_by: submission.name,
+    submission_time: submission.time,
+    supervisor_status: 'Pending',
+    production_status: 'Pending',
+    supervisor_remarks: '',
+    production_remarks: ''
+  }));
+  rmRows.filter(r => Number(r.order) > 0).forEach(r => rows.push({
+    submission_id: submission.id,
+    order_date: submission.date,
+    branch: submission.branch,
+    branch_name: submission.branchName,
+    branch_short: submission.branchShort,
+    shift: submission.shift,
+    item_type: 'raw_material',
+    item_code: r.code || '',
+    item_name: r.name,
+    uom: r.uom || '',
+    qty: Number(r.order) || 0,
+    submitted_by: submission.name,
+    submission_time: submission.time,
+    supervisor_status: 'Pending',
+    production_status: 'Pending',
+    supervisor_remarks: '',
+    production_remarks: ''
+  }));
+  return rows;
+}
+
+function rowToProduction(row) {
+  return {
+    id: row.id,
+    submissionId: row.submission_id,
+    date: row.order_date,
+    branch: row.branch,
+    branchName: row.branch_name || BRANCHES[row.branch] || row.branch,
+    branchShort: row.branch_short || BRANCH_SHORT[row.branch] || row.branch,
+    shift: row.shift || '',
+    itemType: row.item_type || '',
+    itemCode: row.item_code || '',
+    itemName: row.item_name || '',
+    uom: row.uom || '',
+    qty: Number(row.qty) || 0,
+    submittedBy: row.submitted_by || '',
+    submissionTime: row.submission_time || '',
+    supervisorStatus: row.supervisor_status || 'Pending',
+    productionStatus: row.production_status || 'Pending',
+    supervisorRemarks: row.supervisor_remarks || '',
+    productionRemarks: row.production_remarks || ''
+  };
+}
+
+async function loadProductionOrders() {
+  let query = db
+    .from('production_orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (currentRole !== 'supervisor') {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 4);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    query = query.gte('order_date', startDateStr);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Production load error:', error);
+    productionOrders = [];
+    return;
+  }
+  productionOrders = (data || []).map(rowToProduction);
+}
+
+function getFilteredProductionOrders() {
+  const status = (document.getElementById('po-status') || {}).value || '';
+  const branch = (document.getElementById('po-branch') || {}).value || '';
+  return productionOrders.filter(r => (!status || r.supervisorStatus === status) && (!branch || r.branch === branch));
+}
+
+async function updateProductionOrder(id, patch) {
+  const payload = {
+    p_order_id: id,
+    p_actor_name: currentUser || 'System',
+    p_actor_role: currentRole || 'unknown',
+    p_supervisor_status: patch.supervisor_status || null,
+    p_production_status: patch.production_status || null,
+    p_supervisor_remarks: patch.supervisor_remarks || null,
+    p_production_remarks: patch.production_remarks || null
+  };
+  const { error } = await db.rpc('update_production_order_status', payload);
+  if (error) {
+    console.error(error);
+    showToast(error.message || 'Could not update production order');
+    return;
+  }
+  showToast('Production order updated');
+  await renderProductionOrders();
+}
+
+async function renderProductionOrders() {
+  const target = document.getElementById('prod-orders-list');
+  if (!target) return;
+  target.innerHTML = '<div class="empty">Loading production orders...</div>';
+  await loadProductionOrders();
+  let rows = getFilteredProductionOrders();
+  if (currentRole === 'production') {
+    rows = rows.filter(r => r.supervisorStatus === 'Sent to Production' || ['In Production','Completed'].includes(r.productionStatus));
+  }
+  if (!rows.length) {
+    target.innerHTML = `<div class="empty">${currentRole === 'production' ? 'No production orders are currently assigned to production.' : 'No production orders found. Since rows exist in Supabase, this usually means an old cached file or the page is still connected to a different Supabase project.'}</div>`;
+    return;
+  }
+  target.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Showing ${rows.length} production order(s)</div><div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Date</th><th>Branch</th><th>Shift</th><th>Type</th><th>Item</th><th>Qty</th><th>Submitted by</th><th>Supervisor status</th><th>Production</th><th>Actions</th>
+    </tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td>${r.date}</td>
+      <td>${r.branchShort}</td>
+      <td><span class="sbadge ${r.shift === 'AM' ? 'sam' : 'spm'}">${r.shift || '—'}</span></td>
+      <td style="text-transform:capitalize">${r.itemType.replace('_',' ')}</td>
+      <td><div class="iname">${r.itemName}</div><div class="icode">${r.itemCode || ''} ${r.uom ? '· ' + r.uom : ''}</div></td>
+      <td style="font-weight:600">${r.qty}</td>
+      <td>${r.submittedBy}<div class="icode">${r.submissionTime || ''}</div></td>
+      <td>${r.supervisorStatus}</td>
+      <td>${r.productionStatus}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${currentRole === 'supervisor' && r.supervisorStatus === 'Pending' ? `<button class="btn" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Approved'})">Approve</button><button class="btn" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Rejected'})">Reject</button>` : ''}
+          ${currentRole === 'supervisor' && r.supervisorStatus === 'Approved' ? `<button class="btn btn-green" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Sent to Production'})">Send</button>` : ''}
+          ${currentRole === 'production' && r.supervisorStatus === 'Sent to Production' && r.productionStatus === 'Pending' ? `<button class="btn" onclick="updateProductionOrder('${r.id}', {production_status:'In Production'})">Start</button>` : ''}
+          ${currentRole === 'production' && r.productionStatus === 'In Production' ? `<button class="btn btn-green" onclick="updateProductionOrder('${r.id}', {production_status:'Completed'})">Complete</button>` : ''}
+          ${currentRole === 'supervisor' && r.productionStatus === 'In Production' ? `<span class="icode">Production working</span>` : ''}
+          ${currentRole === 'supervisor' && r.productionStatus === 'Completed' ? `<span class="icode" style="color:var(--green-mid)">Completed by production</span>` : ''}
+        </div>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function renderProductionSummary() {
+  const target = document.getElementById('prod-summary-list');
+  if (!target) return;
+  target.innerHTML = '<div class="empty">Loading production summary...</div>';
+  await loadProductionOrders();
+  const scope = (document.getElementById('ps-scope') || {}).value || 'all';
+  let rows = productionOrders.filter(r => r.supervisorStatus !== 'Rejected');
+  if (scope === 'active') rows = rows.filter(r => ['Approved','Sent to Production'].includes(r.supervisorStatus) || ['In Production'].includes(r.productionStatus));
+  if (currentRole === 'production') rows = rows.filter(r => r.supervisorStatus === 'Sent to Production' || ['In Production','Completed'].includes(r.productionStatus));
+  if (scope === 'completed') rows = rows.filter(r => r.productionStatus === 'Completed');
+  if (!rows.length) {
+    target.innerHTML = '<div class="empty">No production summary rows available for this filter. Pending orders only appear when Summary is set to All except rejected.</div>';
+    return;
+  }
+  const grouped = {};
+  rows.forEach(r => {
+    const key = [r.itemType, r.itemName, r.uom].join('|');
+    if (!grouped[key]) grouped[key] = {itemType:r.itemType, itemName:r.itemName, uom:r.uom, totalQty:0, branches:{}, statuses:new Set()};
+    grouped[key].totalQty += Number(r.qty) || 0;
+    grouped[key].branches[r.branchShort] = (grouped[key].branches[r.branchShort] || 0) + (Number(r.qty) || 0);
+    grouped[key].statuses.add(r.supervisorStatus === 'Sent to Production' ? r.productionStatus || 'Pending' : r.supervisorStatus);
+  });
+  const cards = Object.values(grouped).sort((a,b) => a.itemName.localeCompare(b.itemName));
+  target.innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>Total Qty</th><th>Branch breakdown</th><th>Status mix</th></tr></thead>
+    <tbody>${cards.map(c => `<tr>
+      <td><div class="iname">${c.itemName}</div><div class="icode">${c.uom || ''}</div></td>
+      <td style="text-transform:capitalize">${c.itemType.replace('_',' ')}</td>
+      <td style="font-weight:700">${c.totalQty}</td>
+      <td>${Object.entries(c.branches).map(([b,q]) => `${b}: ${q}`).join('<br>')}</td>
+      <td>${Array.from(c.statuses).join(', ')}</td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
 
 function getFiltered() {
@@ -1047,114 +1347,206 @@ function showToast(msg) {
 }
 
 // ===== LOGIN & ROLE LOGIC =====
-const SUPERVISOR_PIN = '1234';
-
-const MERCH_CREDENTIALS = {
-  'Satham':  { pin: '1111', branch: 'festival' },
-  'Syeed':   { pin: '2222', branch: 'dfc' },
-  'Nidhesh': { pin: '3333', branch: 'moe' }
-};
-
 let currentRole = null;
 let currentUser = null;
+let currentUserId = null;
 let currentBranch = null;
+
+async function loadMerchandiserOptions() {
+  const sel = document.getElementById('login-name');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading names...</option>';
+  const { data, error } = await db.rpc('list_active_merchandisers');
+  if (error) {
+    console.error(error);
+    sel.innerHTML = '<option value="">Could not load names</option>';
+    return;
+  }
+  const rows = data || [];
+  sel.innerHTML = '<option value="">Select name...</option>' + rows.map(r => `<option value="${r.display_name}">${r.display_name}</option>`).join('');
+}
+
+async function tryLogin(displayName, pin, role) {
+  const { data, error } = await db.rpc('app_login', {
+    p_display_name: displayName,
+    p_pin: pin,
+    p_role: role
+  });
+  if (error) {
+    console.error(error);
+    throw new Error('Login check failed. Please verify Supabase functions and connection.');
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return row;
+}
 
 function selectRole(role) {
   currentRole = role;
   document.getElementById('role-merch').classList.toggle('selected', role === 'merchandiser');
   document.getElementById('role-super').classList.toggle('selected', role === 'supervisor');
+  document.getElementById('role-prod').classList.toggle('selected', role === 'production');
   document.getElementById('merch-fields').style.display = role === 'merchandiser' ? 'flex' : 'none';
-  document.getElementById('super-fields').style.display = role === 'supervisor'    ? 'flex' : 'none';
+  document.getElementById('super-fields').style.display = role === 'supervisor' ? 'flex' : 'none';
+  document.getElementById('prod-fields').style.display = role === 'production' ? 'flex' : 'none';
   document.getElementById('login-err').classList.remove('show');
+  if (role === 'merchandiser') loadMerchandiserOptions();
 }
 
-function doLogin() {
-  document.getElementById('login-err').classList.remove('show');
+async function doLogin() {
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
   if (!currentRole) { alert('Please select a role first.'); return; }
 
-  if (currentRole === 'merchandiser') {
-    const name = document.getElementById('login-name').value;
-    const pin  = document.getElementById('login-merch-pin').value.trim();
-    if (!name) { document.getElementById('login-name').focus(); return; }
-    if (!pin)  { document.getElementById('login-merch-pin').focus(); return; }
-    const cred = MERCH_CREDENTIALS[name];
-    if (!cred || cred.pin !== pin) {
-      document.getElementById('login-err').textContent = 'Incorrect PIN. Please try again.';
-      document.getElementById('login-err').classList.add('show');
-      document.getElementById('login-merch-pin').value = '';
-      return;
+  try {
+    if (currentRole === 'merchandiser') {
+      const name = document.getElementById('login-name').value;
+      const pin  = document.getElementById('login-merch-pin').value.trim();
+      if (!name) { document.getElementById('login-name').focus(); return; }
+      if (!pin)  { document.getElementById('login-merch-pin').focus(); return; }
+      const row = await tryLogin(name, pin, 'merchandiser');
+      if (!row) {
+        errEl.textContent = 'Incorrect PIN or inactive user.';
+        errEl.classList.add('show');
+        document.getElementById('login-merch-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = row.branch || null;
+      launchApp('merchandiser');
+    } else if (currentRole === 'supervisor') {
+      const pin = document.getElementById('login-pin').value.trim();
+      if (!pin) { document.getElementById('login-pin').focus(); return; }
+      const row = await tryLogin('Marissa', pin, 'supervisor');
+      if (!row) {
+        errEl.textContent = 'Incorrect supervisor PIN.';
+        errEl.classList.add('show');
+        document.getElementById('login-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = null;
+      launchApp('supervisor');
+    } else {
+      const pin = document.getElementById('login-prod-pin').value.trim();
+      if (!pin) { document.getElementById('login-prod-pin').focus(); return; }
+      const row = await tryLogin('Production Team', pin, 'production');
+      if (!row) {
+        errEl.textContent = 'Incorrect production PIN.';
+        errEl.classList.add('show');
+        document.getElementById('login-prod-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = null;
+      launchApp('production');
     }
-    currentUser   = name;
-    currentBranch = cred.branch;
-    launchApp('merchandiser');
-  } else {
-    const pin = document.getElementById('login-pin').value.trim();
-    if (pin !== SUPERVISOR_PIN) {
-      document.getElementById('login-err').textContent = 'Incorrect PIN. Please try again.';
-      document.getElementById('login-err').classList.add('show');
-      document.getElementById('login-pin').value = '';
-      return;
-    }
-    currentUser   = 'Marissa';
-    currentBranch = null;
-    launchApp('supervisor');
+  } catch (e) {
+    errEl.textContent = e.message || 'Login failed.';
+    errEl.classList.add('show');
   }
 }
 
 function launchApp(role) {
+  currentRole = role;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
 
   const label = role === 'supervisor'
-    ? 'Supervisor — Marissa'
-    : `${currentUser} · ${BRANCH_SHORT[currentBranch]}`;
+    ? `Supervisor — ${currentUser || 'Marissa'}`
+    : role === 'production'
+      ? (currentUser || 'Production Team')
+      : `${currentUser} · ${BRANCH_SHORT[currentBranch]}`;
   document.getElementById('topbar-user-label').textContent = label;
 
   const nav = document.getElementById('main-nav');
   const navBtns = document.querySelectorAll('#main-nav .nav-btn');
   nav.style.display = 'flex';
 
+  navBtns.forEach(btn => {
+    const roleTags = (btn.getAttribute('data-role') || '').split(',').map(s => s.trim()).filter(Boolean);
+    btn.style.display = roleTags.includes(role) ? '' : 'none';
+    btn.classList.remove('active');
+  });
+
+  document.getElementById('view-merch').classList.remove('active');
+  document.getElementById('view-dash').classList.remove('active');
+  document.getElementById('view-prod-orders').classList.remove('active');
+  document.getElementById('view-prod-summary').classList.remove('active');
+
   if (role === 'supervisor') {
     navBtns[0].textContent = 'Merchandiser form';
     navBtns[1].textContent = 'Supervisor dashboard';
-    switchView('dash', navBtns[1]);
-  } else {
+    document.getElementById('mn').removeAttribute('readonly');
+    document.getElementById('br').removeAttribute('disabled');
+    switchView('prod-orders', navBtns[2]);
+  } else if (role === 'merchandiser') {
     navBtns[0].textContent = 'My form';
     navBtns[1].textContent = 'My branch dashboard';
-    document.getElementById('view-merch').classList.add('active');
-    document.getElementById('view-dash').classList.remove('active');
     navBtns[0].classList.add('active');
-    navBtns[1].classList.remove('active');
+    document.getElementById('view-merch').classList.add('active');
     document.getElementById('mn').value = currentUser;
     document.getElementById('br').value = currentBranch;
     document.getElementById('mn').setAttribute('readonly', true);
     document.getElementById('br').setAttribute('disabled', true);
     document.getElementById('f-branch').value = currentBranch;
+  } else {
+    navBtns[2].textContent = 'Production orders';
+    navBtns[3].textContent = 'Production dashboard';
+    switchView('prod-summary', navBtns[3]);
   }
 
   document.getElementById('curr-date').textContent =
     new Date().toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
-  document.getElementById('fd').value = new Date().toISOString().split('T')[0];
-  buildPkg(); buildIh(); buildRm(); renderDash();
+  enforceCurrentDateLock();
+  buildPkg(); buildIh(); buildRm();
+  if (role === 'production') {
+    renderProductionSummary();
+  } else {
+    renderDash();
+  }
 
 }
 
 function doLogout() {
-  currentRole = null; currentUser = null; currentBranch = null;
+  currentRole = null; currentUser = null; currentUserId = null; currentBranch = null;
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('role-merch').classList.remove('selected');
   document.getElementById('role-super').classList.remove('selected');
+  document.getElementById('role-prod').classList.remove('selected');
   document.getElementById('merch-fields').style.display = 'none';
   document.getElementById('super-fields').style.display = 'none';
+  document.getElementById('prod-fields').style.display = 'none';
   document.getElementById('login-name').value = '';
   document.getElementById('login-merch-pin').value = '';
   document.getElementById('login-pin').value = '';
+  document.getElementById('login-prod-pin').value = '';
   document.getElementById('login-err').classList.remove('show');
   document.getElementById('view-merch').classList.remove('active');
   document.getElementById('view-dash').classList.remove('active');
+  const vpo = document.getElementById('view-prod-orders'); if (vpo) vpo.classList.remove('active');
+  const vps = document.getElementById('view-prod-summary'); if (vps) vps.classList.remove('active');
   clearForm();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const shiftEl = document.getElementById('sh');
+  if (shiftEl) {
+    shiftEl.addEventListener('change', updateCarryForwardButtonVisibility);
+  }
+  updateCarryForwardButtonVisibility();
+});
+
+async function initApp() {
+  enforceCurrentDateLock();
+  await loadMerchandiserOptions();
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
 
 // Allow Enter key on login PIN field
 document.addEventListener('keydown', function(e) {
