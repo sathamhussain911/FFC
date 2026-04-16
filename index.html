@@ -426,8 +426,8 @@
     <div class="stat-grid">
       <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
       <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 6 branches</div></div>
-      <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
-      <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
+      <div class="sc"><div class="sc-lbl">AM submissions</div><div class="sc-val" id="ds-am">0</div><div class="sc-sub">count by shift</div></div>
+      <div class="sc"><div class="sc-lbl">PM submissions</div><div class="sc-val" id="ds-pm">0</div><div class="sc-sub">count by shift</div></div>
     </div>
 
     <div id="alert-section"></div>
@@ -533,8 +533,6 @@ const BRANCH_SHORT = {
 let PKG = [];
 let IH = [];
 let RM = [];
-let branchItemCache = {};
-let builtTabs = { pkg:false, ih:false, rm:false };
 
 function normalizeItemRow(row) {
   const resolvedType = row.item_type || row.type || '';
@@ -546,29 +544,15 @@ function normalizeItemRow(row) {
     item_type: resolvedType,
     category: row.category || '',
     item_id: row.item_id || null,
-    display_order: Number(row.display_order || 0)
+    display_order: row.display_order || 0
   };
 }
 
-async function loadBranchItems(branch, forceRefresh = false) {
+async function loadBranchItems(branch) {
   if (!branch) {
     PKG = [];
     IH = [];
     RM = [];
-    branchItemCache = {};
-    builtTabs = { pkg:false, ih:false, rm:false };
-    buildPkg();
-    buildIh();
-    buildRm();
-    return;
-  }
-
-  if (!forceRefresh && branchItemCache[branch]) {
-    const cached = branchItemCache[branch];
-    PKG = cached.PKG;
-    IH = cached.IH;
-    RM = cached.RM;
-    builtTabs = { pkg:false, ih:false, rm:false };
     buildPkg();
     buildIh();
     buildRm();
@@ -583,12 +567,10 @@ async function loadBranchItems(branch, forceRefresh = false) {
   }
 
   const rows = (data || []).map(normalizeItemRow);
-  console.log('Loaded branch items for', branch, rows.length);
+  console.log('Loaded branch items for', branch, rows);
   PKG = rows.filter(r => r.item_type === 'packaged');
   IH  = rows.filter(r => r.item_type === 'inhouse');
   RM  = rows.filter(r => r.item_type === 'raw_material');
-  branchItemCache[branch] = { PKG, IH, RM };
-  builtTabs = { pkg:false, ih:false, rm:false };
 
   buildPkg();
   buildIh();
@@ -615,54 +597,12 @@ let productionOrders = [];
 function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
 function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
 
-
-function esc(v) {
-  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function makeGroupHeader(label, colspan) {
-  return `<tr class="group-row"><td colspan="${colspan}" style="background:var(--green-light);color:var(--green-text);font-weight:600;padding:7px 8px">${esc(label)}</td></tr>`;
-}
-
-function renderGrouped(tableBody, items, colspan, rowBuilder) {
-  tableBody.innerHTML = '';
-  let lastGroup = null;
-  items.forEach((it, i) => {
-    const group = it.category || it.type || 'Other';
-    if (group !== lastGroup) {
-      const gtr = document.createElement('tr');
-      gtr.innerHTML = makeGroupHeader(group, colspan);
-      tableBody.appendChild(gtr);
-      lastGroup = group;
-    }
-    const tr = document.createElement('tr');
-    tr.innerHTML = rowBuilder(it, i);
-    tableBody.appendChild(tr);
-  });
-}
-
-function sortItemsForDisplay(items) {
-  return [...items].sort((a, b) => {
-    const ao = Number(a.display_order || 0);
-    const bo = Number(b.display_order || 0);
-    if (ao !== bo) return ao - bo;
-    const ag = String(a.category || a.type || '');
-    const bg = String(b.category || b.type || '');
-    if (ag !== bg) return ag.localeCompare(bg);
-    return String(a.n || '').localeCompare(String(b.n || ''));
-  });
-}
-
 function buildPkg() {
-  const tb = document.getElementById('pkg-tb');
-  if (!document.getElementById('tab-pkg') || document.getElementById('tab-pkg').style.display === 'none') {
-    tb.innerHTML = '<tr><td colspan="10" class="empty">Open this tab to load items.</td></tr>';
-    builtTabs.pkg = false;
-    return;
-  }
-  renderGrouped(tb, sortItemsForDisplay(PKG), 10, (it, i) => `
-      <td><div class="iname">${esc(it.n)}</div><div class="icode">${esc(it.c)}</div></td>
-      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
+  const tb = document.getElementById('pkg-tb'); tb.innerHTML = '';
+  PKG.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="iname">${it.n}</div><div class="icode">${it.c}</div></td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
       <td>${ni(`p${i}_op`)}</td>
       <td>${ni(`p${i}_rc`)}</td>
       <td>${ni(`p${i}_pr`)}</td>
@@ -670,43 +610,40 @@ function buildPkg() {
       <td>${ni(`p${i}_ex`)}</td>
       <td>${ni(`p${i}_re`)}</td>
       <td>${ni(`p${i}_cl`)}</td>
-      <td>${ni(`p${i}_or`)}</td>`);
-  builtTabs.pkg = true;
+      <td>${ni(`p${i}_or`)}</td>`;
+    tb.appendChild(tr);
+  });
 }
 
 function buildIh() {
-  const tb = document.getElementById('ih-tb');
-  if (!document.getElementById('tab-ih') || document.getElementById('tab-ih').style.display === 'none') {
-    tb.innerHTML = '<tr><td colspan="10" class="empty">Open this tab to load items.</td></tr>';
-    builtTabs.ih = false;
-    return;
-  }
-  renderGrouped(tb, sortItemsForDisplay(IH), 10, (it, i) => `
-      <td class="iname">${esc(it.n)}</td>
-      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
+  const tb = document.getElementById('ih-tb'); tb.innerHTML = '';
+  IH.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="iname">${it.n}</td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
       ${['am','pm','tot','so','ex','sa','cr'].map(f => `<td>${ni(`ih${i}_${f}`)}</td>`).join('')}
-      <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`);
-  builtTabs.ih = true;
+      <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`;
+    tb.appendChild(tr);
+  });
 }
 
+
 function buildRm() {
-  const tb = document.getElementById('rm-tb');
-  if (!document.getElementById('tab-rm') || document.getElementById('tab-rm').style.display === 'none') {
-    tb.innerHTML = '<tr><td colspan="8" class="empty">Open this tab to load items.</td></tr>';
-    builtTabs.rm = false;
-    return;
-  }
-  renderGrouped(tb, sortItemsForDisplay(RM), 8, (it, i) => `
-      <td><div class="iname">${esc(it.n)}</div>${it.c ? `<div class="icode">${esc(it.c)}</div>` : ''}</td>
-      <td style="color:var(--text3);font-size:11px">${esc(it.u)}</td>
+  const tb = document.getElementById('rm-tb'); tb.innerHTML = '';
+  RM.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="iname">${it.n}</div>${it.c ? `<div class="icode">${it.c}</div>` : ''}</td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
       <td>${ni(`rm${i}_op`)}</td>
       <td>${ni(`rm${i}_rc`)}</td>
       <td>${ni(`rm${i}_us`)}</td>
       <td>${ni(`rm${i}_da`)}</td>
       <td>${ni(`rm${i}_cl`)}</td>
-      <td>${ni(`rm${i}_or`)}</td>`);
-  builtTabs.rm = true;
+      <td>${ni(`rm${i}_or`)}</td>`;
+    tb.appendChild(tr);
+  });
 }
+
 
 function switchView(v, btn) {
   document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
@@ -722,9 +659,6 @@ function switchTab(t, el) {
   ['pkg','ih','rm'].forEach(x => document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none');
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
-  if (t === 'pkg' && !builtTabs.pkg) buildPkg();
-  if (t === 'ih' && !builtTabs.ih) buildIh();
-  if (t === 'rm' && !builtTabs.rm) buildRm();
 }
 
 
@@ -773,26 +707,6 @@ function clearForm() {
   switchTab('pkg', document.querySelector('.tab'));
 }
 
-
-
-function hasMeaningfulValue(row, keys) {
-  return keys.some(k => {
-    const v = row[k];
-    return typeof v === 'number' ? v !== 0 : String(v || '').trim() !== '';
-  });
-}
-
-function compactPkgRows(rows) {
-  return rows.filter(r => hasMeaningfulValue(r, ['opening','received','prepared','sold','expired','returned','closing','order']));
-}
-
-function compactIhRows(rows) {
-  return rows.filter(r => hasMeaningfulValue(r, ['am','pm','total','sold','expired','sampling','custReturn','remarks']));
-}
-
-function compactRmRows(rows) {
-  return rows.filter(r => hasMeaningfulValue(r, ['opening','received','used','damage','closing','order']));
-}
 
 function collectPkg() {
   return PKG.map((it, i) => ({
@@ -901,9 +815,9 @@ async function submitForm() {
   submitBtn.textContent = 'Saving...';
   submitBtn.disabled = true;
 
-  const pkgRows = compactPkgRows(collectPkg());
-  const ihRows = compactIhRows(collectIh());
-  const rmRows = compactRmRows(collectRm());
+  const pkgRows = collectPkg();
+  const ihRows = collectIh();
+  const rmRows = collectRm();
   const expFlags = pkgRows.filter(r => Number(r.expired) > 0).map(r => ({name: r.name, qty: r.expired}));
   const now = new Date();
   const subDate = currentRole === 'merchandiser' ? now.toISOString().split('T')[0] : (document.getElementById('fd').value || now.toISOString().split('T')[0]);
@@ -1052,11 +966,13 @@ async function loadProductionOrders() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - (currentRole === 'supervisor' ? 14 : 4));
-  const startDateStr = startDate.toISOString().split('T')[0];
-  query = query.gte('order_date', startDateStr);
+  if (currentRole !== 'supervisor') {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 4);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    query = query.gte('order_date', startDateStr);
+  }
 
   const { data, error } = await query;
 
@@ -1211,41 +1127,38 @@ async function renderDash() {
     ? getFiltered().filter(s => s.date === today || !s.date)
     : getFiltered();
   const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
-  const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
-  const expectedCount = currentRole === 'merchandiser' ? 2 : Object.keys(BRANCHES).length * 2;
-  const supervisorTodayCount = allToday.length;
+  const amCount = scopeSubs.filter(s => s.shift === 'AM').length;
+  const pmCount = scopeSubs.filter(s => s.shift === 'PM').length;
 
   document.getElementById('ds-sub').textContent  = scopeSubs.length;
   document.getElementById('ds-br').textContent   = currentRole === 'merchandiser' ? 1 : brs;
-  document.getElementById('ds-ex').textContent   = exf;
-  document.getElementById('ds-pend').textContent = currentRole === 'merchandiser'
-    ? Math.max(0, expectedCount - scopeSubs.length)
-    : Math.max(0, expectedCount - supervisorTodayCount);
+  document.getElementById('ds-am').textContent   = amCount;
+  document.getElementById('ds-pm').textContent   = pmCount;
 
   const statLabels = document.querySelectorAll('.sc-lbl');
   const statSubs = document.querySelector('#ds-sub')?.nextElementSibling;
   const statBranches = document.querySelector('#ds-br')?.nextElementSibling;
-  const statExpired = document.querySelector('#ds-ex')?.nextElementSibling;
-  const statPending = document.querySelector('#ds-pend')?.nextElementSibling;
+  const statAm = document.querySelector('#ds-am')?.nextElementSibling;
+  const statPm = document.querySelector('#ds-pm')?.nextElementSibling;
 
   if (currentRole === 'supervisor') {
     if (statLabels[0]) statLabels[0].textContent = 'Submissions last 5 days';
     if (statLabels[1]) statLabels[1].textContent = 'Branches reported';
-    if (statLabels[2]) statLabels[2].textContent = 'Expired flags last 5 days';
-    if (statLabels[3]) statLabels[3].textContent = 'Pending today';
-    if (statSubs) statSubs.textContent = 'rolling 5-day view';
+    if (statLabels[2]) statLabels[2].textContent = 'AM submissions';
+    if (statLabels[3]) statLabels[3].textContent = 'PM submissions';
+    if (statSubs) statSubs.textContent = 'all submissions shown';
     if (statBranches) statBranches.textContent = 'active in last 5 days';
-    if (statExpired) statExpired.textContent = 'across last 5 days';
-    if (statPending) statPending.textContent = 'today only';
+    if (statAm) statAm.textContent = 'count by shift';
+    if (statPm) statPm.textContent = 'count by shift';
   } else {
-    if (statLabels[0]) statLabels[0].textContent = 'Submissions today';
+    if (statLabels[0]) statLabels[0].textContent = 'My submissions today';
     if (statLabels[1]) statLabels[1].textContent = 'My branch';
-    if (statLabels[2]) statLabels[2].textContent = 'Expired flags';
-    if (statLabels[3]) statLabels[3].textContent = 'Pending';
-    if (statSubs) statSubs.textContent = 'of 2 expected';
+    if (statLabels[2]) statLabels[2].textContent = 'AM submissions';
+    if (statLabels[3]) statLabels[3].textContent = 'PM submissions';
+    if (statSubs) statSubs.textContent = 'all submissions shown';
     if (statBranches) statBranches.textContent = 'your branch only';
-    if (statExpired) statExpired.textContent = 'today for your branch';
-    if (statPending) statPending.textContent = 'submissions needed today';
+    if (statAm) statAm.textContent = 'count by shift';
+    if (statPm) statPm.textContent = 'count by shift';
   }
 
   const branchFilter = document.getElementById('f-branch');
@@ -1273,17 +1186,18 @@ async function renderDash() {
 
   document.getElementById('br-grid').innerHTML = branchEntries.map(([id, name]) => {
     const bs = scopeSubs.filter(s => s.branch === id);
-    const am = bs.some(s => s.shift === 'AM'), pm = bs.some(s => s.shift === 'PM');
-    const prog = Math.round(((am ? 1 : 0) + (pm ? 1 : 0)) / 2 * 100);
-    const cls = prog === 100 ? 'dot-g' : prog > 0 ? 'dot-a' : 'dot-x';
+    const amCountBranch = bs.filter(s => s.shift === 'AM').length;
+    const pmCountBranch = bs.filter(s => s.shift === 'PM').length;
+    const totalBranch = bs.length;
+    const cls = totalBranch > 0 ? 'dot-g' : 'dot-x';
     return `<div class="bc">
       <div class="bc-hdr"><div class="bc-name">${name}</div><div class="dot ${cls}"></div></div>
       <div class="bc-meta">
-        AM: <span style="color:${am?'var(--green-mid)':'var(--amber)'};font-weight:500">${am ? 'Submitted' : 'Pending'}</span><br>
-        PM: <span style="color:${pm?'var(--green-mid)':'var(--amber)'};font-weight:500">${pm ? 'Submitted' : 'Pending'}</span><br>
-        ${bs.length ? `Last: ${bs[bs.length-1].name} at ${bs[bs.length-1].time}` : 'No submissions yet'}
+        AM submissions: <span style="color:var(--green-mid);font-weight:500">${amCountBranch}</span><br>
+        PM submissions: <span style="color:var(--amber);font-weight:500">${pmCountBranch}</span><br>
+        ${bs.length ? `Last: ${bs[0].name} at ${bs[0].time}` : 'No submissions yet'}
       </div>
-      <div class="pbar"><div class="pfill" style="width:${prog}%"></div></div>
+      <div class="pbar"><div class="pfill" style="width:${Math.min(100, totalBranch * 10)}%"></div></div>
     </div>`;
   }).join('');
 
