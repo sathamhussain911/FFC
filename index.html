@@ -304,7 +304,7 @@
 
     <div id="sync-banner" class="succ-banner" style="display:block;background:#eef6ff;border-color:#b9d6ff">
       <div class="succ-title" style="color:#124a8a">Shared shift handover enabled</div>
-      <div class="succ-sub" id="sync-detail" style="color:#2c5f9e">Select branch and date, then click Load Previous Day Opening Stock.</div>
+      <div class="succ-sub" id="sync-detail" style="color:#2c5f9e">Select AM shift to automatically load the previous day closing stock into opening stock.</div>
     </div>
 
     <div class="form-row" style="max-width:520px">
@@ -339,7 +339,7 @@
     </div>
 
     <div id="carry-forward-wrap" style="display:none;justify-content:flex-start;margin:8px 0 14px">
-      <button class="btn" id="carry-forward-btn" type="button" onclick="loadCarryForwardStock()">Load Previous Day Opening Stock</button>
+      <button class="btn" id="carry-forward-btn" type="button" onclick="loadCarryForwardStock()">Auto Load Previous Day Closing Stock</button>
     </div>
 
     <div class="tab-bar">
@@ -426,8 +426,8 @@
     <div class="stat-grid">
       <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
       <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 6 branches</div></div>
-      <div class="sc"><div class="sc-lbl">AM submissions</div><div class="sc-val" id="ds-am">0</div><div class="sc-sub">count by shift</div></div>
-      <div class="sc"><div class="sc-lbl">PM submissions</div><div class="sc-val" id="ds-pm">0</div><div class="sc-sub">count by shift</div></div>
+      <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
+      <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
     </div>
 
     <div id="alert-section"></div>
@@ -668,7 +668,7 @@ function updateCarryForwardButtonVisibility() {
   if (!wrap) return;
   wrap.style.display = shift === 'AM' ? 'flex' : 'none';
   if (shift === 'AM') {
-    updateSyncBanner('AM shift selected. Select branch and date, then click Load Previous Day Opening Stock.');
+    updateSyncBanner('AM shift selected. Select AM shift to automatically load the previous day closing stock into opening stock.');
   } else if (shift === 'PM') {
     updateSyncBanner('PM shift selected. All fields are manual. Previous day opening stock load is available only for AM shift.');
   } else {
@@ -748,23 +748,93 @@ function updateSyncBanner(msg, isWarning = false) {
 }
 
 
+
+function normalizeCarryCode(v) {
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  const compact = s.replace(/\s+/g, '').replace(/\.0+$/,'');
+  const digitsOnly = compact.replace(/[^\d]/g, '');
+  return digitsOnly || compact.toLowerCase();
+}
+
+function normalizeCarryName(v) {
+  return String(v ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function rowCode(row) {
+  return row?.code ?? row?.item_code ?? row?.c ?? '';
+}
+
+function rowName(row) {
+  return row?.name ?? row?.item_name ?? row?.n ?? '';
+}
+
+function closingValue(row) {
+  const raw = row?.closing ?? row?.cl ?? row?.closing_stock ?? row?.Closing ?? 0;
+  const num = Number(raw);
+  return Number.isFinite(num) && num > 0 ? num : 0;
+}
+
+function buildCarryLookup(rows) {
+  const byCode = new Map();
+  const byName = new Map();
+
+  (rows || []).forEach((row) => {
+    const close = closingValue(row);
+    if (close <= 0) return;
+
+    const normalized = { ...row, __close: close };
+    const codeKey = normalizeCarryCode(rowCode(row));
+    const nameKey = normalizeCarryName(rowName(row));
+
+    if (codeKey) byCode.set(codeKey, normalized);
+    if (nameKey) byName.set(nameKey, normalized);
+  });
+
+  return { byCode, byName };
+}
+
+function getCarryMatch(lookup, item) {
+  const codeKey = normalizeCarryCode(item.c || item.code || item.item_code);
+  const nameKey = normalizeCarryName(item.n || item.name || item.item_name);
+
+  return (codeKey && lookup.byCode.get(codeKey))
+    || (nameKey && lookup.byName.get(nameKey))
+    || null;
+}
+
+function applyCarryForward(items, prefix, sourceRows) {
+  const rows = sourceRows || [];
+  const lookup = buildCarryLookup(rows);
+  items.forEach((it, i) => {
+    let prev = getCarryMatch(lookup, it);
+    if (!prev && rows[i]) {
+      const fallbackClose = closingValue(rows[i]);
+      if (fallbackClose > 0) prev = rows[i];
+    }
+    const op = document.getElementById(`${prefix}${i}_op`);
+    if (!op) return;
+    op.value = prev ? closingValue(prev) : 0;
+  });
+}
+
 function fillOpeningFromSubmission(source) {
   if (!source) return;
 
-  const pkgMap = new Map((source.pkg || []).map(row => [String(row.code || row.name), row]));
-  PKG.forEach((it, i) => {
-    const key = String(it.c || it.n);
-    const prev = pkgMap.get(key);
-    const op = document.getElementById(`p${i}_op`);
-    if (op && prev) op.value = prev.closing ?? 0;
-  });
+  applyCarryForward(PKG, 'p', source.pkg || []);
+  applyCarryForward(RM, 'rm', source.rm || []);
 
-  const rmMap = new Map((source.rm || []).map(row => [String(row.code || row.name), row]));
-  RM.forEach((it, i) => {
-    const key = String(it.c || it.n);
-    const prev = rmMap.get(key);
-    const op = document.getElementById(`rm${i}_op`);
-    if (op && prev) op.value = prev.closing ?? 0;
+  console.log('Carry-forward source', {
+    sourceDate: source.date,
+    sourceShift: source.shift,
+    pkgRows: source.pkg || [],
+    rmRows: source.rm || []
   });
 }
 
@@ -783,7 +853,7 @@ async function loadCarryForwardStock() {
     .lte('sub_date', date)
     .order('sub_date', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(50);
 
   if (error) {
     console.error('Carry-forward load error:', error);
@@ -802,7 +872,7 @@ async function loadCarryForwardStock() {
   }
 
   fillOpeningFromSubmission(source);
-  updateSyncBanner(`Opening stock loaded from the previous saved closing for ${source.branchShort} on ${source.date} at ${source.time}. All other fields remain fully manual.`);
+  updateSyncBanner(`Opening stock auto-loaded from the latest previous-day closing for ${source.branchShort} on ${source.date} at ${source.time}. Packaged items and raw materials without previous closing stay at 0.`);
 }
 
 async function submitForm() {
@@ -1127,38 +1197,41 @@ async function renderDash() {
     ? getFiltered().filter(s => s.date === today || !s.date)
     : getFiltered();
   const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
-  const amCount = scopeSubs.filter(s => s.shift === 'AM').length;
-  const pmCount = scopeSubs.filter(s => s.shift === 'PM').length;
+  const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+  const expectedCount = currentRole === 'merchandiser' ? 2 : Object.keys(BRANCHES).length * 2;
+  const supervisorTodayCount = allToday.length;
 
   document.getElementById('ds-sub').textContent  = scopeSubs.length;
   document.getElementById('ds-br').textContent   = currentRole === 'merchandiser' ? 1 : brs;
-  document.getElementById('ds-am').textContent   = amCount;
-  document.getElementById('ds-pm').textContent   = pmCount;
+  document.getElementById('ds-ex').textContent   = exf;
+  document.getElementById('ds-pend').textContent = currentRole === 'merchandiser'
+    ? Math.max(0, expectedCount - scopeSubs.length)
+    : Math.max(0, expectedCount - supervisorTodayCount);
 
   const statLabels = document.querySelectorAll('.sc-lbl');
   const statSubs = document.querySelector('#ds-sub')?.nextElementSibling;
   const statBranches = document.querySelector('#ds-br')?.nextElementSibling;
-  const statAm = document.querySelector('#ds-am')?.nextElementSibling;
-  const statPm = document.querySelector('#ds-pm')?.nextElementSibling;
+  const statExpired = document.querySelector('#ds-ex')?.nextElementSibling;
+  const statPending = document.querySelector('#ds-pend')?.nextElementSibling;
 
   if (currentRole === 'supervisor') {
     if (statLabels[0]) statLabels[0].textContent = 'Submissions last 5 days';
     if (statLabels[1]) statLabels[1].textContent = 'Branches reported';
-    if (statLabels[2]) statLabels[2].textContent = 'AM submissions';
-    if (statLabels[3]) statLabels[3].textContent = 'PM submissions';
-    if (statSubs) statSubs.textContent = 'all submissions shown';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags last 5 days';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending today';
+    if (statSubs) statSubs.textContent = 'rolling 5-day view';
     if (statBranches) statBranches.textContent = 'active in last 5 days';
-    if (statAm) statAm.textContent = 'count by shift';
-    if (statPm) statPm.textContent = 'count by shift';
+    if (statExpired) statExpired.textContent = 'across last 5 days';
+    if (statPending) statPending.textContent = 'today only';
   } else {
-    if (statLabels[0]) statLabels[0].textContent = 'My submissions today';
+    if (statLabels[0]) statLabels[0].textContent = 'Submissions today';
     if (statLabels[1]) statLabels[1].textContent = 'My branch';
-    if (statLabels[2]) statLabels[2].textContent = 'AM submissions';
-    if (statLabels[3]) statLabels[3].textContent = 'PM submissions';
-    if (statSubs) statSubs.textContent = 'all submissions shown';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending';
+    if (statSubs) statSubs.textContent = 'of 2 expected';
     if (statBranches) statBranches.textContent = 'your branch only';
-    if (statAm) statAm.textContent = 'count by shift';
-    if (statPm) statPm.textContent = 'count by shift';
+    if (statExpired) statExpired.textContent = 'today for your branch';
+    if (statPending) statPending.textContent = 'submissions needed today';
   }
 
   const branchFilter = document.getElementById('f-branch');
@@ -1186,18 +1259,17 @@ async function renderDash() {
 
   document.getElementById('br-grid').innerHTML = branchEntries.map(([id, name]) => {
     const bs = scopeSubs.filter(s => s.branch === id);
-    const amCountBranch = bs.filter(s => s.shift === 'AM').length;
-    const pmCountBranch = bs.filter(s => s.shift === 'PM').length;
-    const totalBranch = bs.length;
-    const cls = totalBranch > 0 ? 'dot-g' : 'dot-x';
+    const am = bs.some(s => s.shift === 'AM'), pm = bs.some(s => s.shift === 'PM');
+    const prog = Math.round(((am ? 1 : 0) + (pm ? 1 : 0)) / 2 * 100);
+    const cls = prog === 100 ? 'dot-g' : prog > 0 ? 'dot-a' : 'dot-x';
     return `<div class="bc">
       <div class="bc-hdr"><div class="bc-name">${name}</div><div class="dot ${cls}"></div></div>
       <div class="bc-meta">
-        AM submissions: <span style="color:var(--green-mid);font-weight:500">${amCountBranch}</span><br>
-        PM submissions: <span style="color:var(--amber);font-weight:500">${pmCountBranch}</span><br>
-        ${bs.length ? `Last: ${bs[0].name} at ${bs[0].time}` : 'No submissions yet'}
+        AM: <span style="color:${am?'var(--green-mid)':'var(--amber)'};font-weight:500">${am ? 'Submitted' : 'Pending'}</span><br>
+        PM: <span style="color:${pm?'var(--green-mid)':'var(--amber)'};font-weight:500">${pm ? 'Submitted' : 'Pending'}</span><br>
+        ${bs.length ? `Last: ${bs[bs.length-1].name} at ${bs[bs.length-1].time}` : 'No submissions yet'}
       </div>
-      <div class="pbar"><div class="pfill" style="width:${Math.min(100, totalBranch * 10)}%"></div></div>
+      <div class="pbar"><div class="pfill" style="width:${prog}%"></div></div>
     </div>`;
   }).join('');
 
