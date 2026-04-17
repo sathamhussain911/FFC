@@ -1,1 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fresh Fruits Company Inventory System — Help Fruits</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #3D7A18;
+    --green-dark: #2e5c12;
+    --green-light: #EAF3DE;
+    --green-border: #C0DD97;
+    --green-text: #27500A;
+    --green-mid: #3B6D11;
+    --excel-green: #1D6F42;
+    --amber: #EF9F27;
+    --amber-text: #633806;
+    --amber-bg: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --red-border: #F09595;
+    --blue: #185FA5;
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #eeede9;
+    --text: #1a1a1a;
+    --text2: #6b6b6b;
+    --text3: #9b9b9b;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg3); min-height: 100vh; }
+  .app { max-width: 1100px; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
+
+  /* Topbar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg); }
+  .topbar-logo { display: flex; align-items: center; gap: 12px; }
+  .topbar-icon { width: 36px; height: 36px; background: var(--green); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+  .topbar-icon svg { width: 20px; height: 20px; fill: #fff; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .topbar-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .topbar-date { font-size: 12px; color: var(--text2); }
+
+  /* Nav */
+  .nav { display: flex; gap: 4px; padding: 10px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg2); }
+  .nav-btn { padding: 7px 16px; border-radius: var(--radius); border: 0.5px solid var(--border); background: transparent; cursor: pointer; font-size: 13px; color: var(--text2); font-family: inherit; transition: all 0.15s; }
+  .nav-btn:hover { background: var(--bg); color: var(--text); }
+  .nav-btn.active { background: var(--bg); color: var(--text); border-color: var(--border2); font-weight: 500; }
+
+  /* Views */
+  .view { display: none; padding: 20px; }
+  .view.active { display: block; }
+
+  /* Section header */
+  .sec-hdr { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
+
+  /* Form */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .fg label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  select, input[type=text], input[type=date] {
+    width: 100%; padding: 8px 10px; border: 0.5px solid var(--border2);
+    border-radius: var(--radius); background: var(--bg); color: var(--text);
+    font-size: 13px; font-family: inherit; outline: none;
+  }
+  select:focus, input[type=text]:focus, input[type=date]:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(61,122,24,0.12); }
+  textarea { width: 100%; padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 12px; font-family: inherit; background: var(--bg); color: var(--text); resize: none; outline: none; }
+  textarea:focus { border-color: var(--green); }
+
+  /* Tab bar */
+  .tab-bar { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 14px; }
+  .tab { padding: 8px 16px; font-size: 12px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; user-select: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 500; }
+
+  /* Tables */
+  .tbl-wrap { overflow-x: auto; border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  thead th { background: var(--bg2); padding: 8px 8px; text-align: left; font-weight: 500; font-size: 11px; color: var(--text2); border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 5px 6px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg2); }
+  .ni { width: 100%; padding: 4px 5px; border: 0.5px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 12px; text-align: center; font-family: inherit; outline: none; }
+  .ni:focus { border-color: var(--green); }
+    .iname { font-size: 12px; }
+  .icode { font-size: 10px; color: var(--text3); }
+  th.green { background: var(--green-light); color: var(--green-mid); }
+
+  /* Buttons */
+  .btn { padding: 8px 18px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); cursor: pointer; font-size: 13px; font-family: inherit; color: var(--text); transition: all 0.15s; }
+  .btn:hover { background: var(--bg2); }
+  .btn-green { background: var(--green); color: #fff; border-color: var(--green); font-weight: 500; }
+  .btn-green:hover { background: var(--green-dark); }
+  .btn-excel { background: var(--excel-green); color: #fff; border-color: var(--excel-green); font-weight: 500; }
+  .btn-excel:hover { background: #165533; }
+  .btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  /* Banners */
+  .succ-banner { background: var(--green-light); border: 0.5px solid var(--green-border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; display: none; }
+  .succ-banner.show { display: block; }
+  .succ-title { font-size: 13px; font-weight: 600; color: var(--green-text); margin-bottom: 2px; }
+  .succ-sub { font-size: 12px; color: var(--green-mid); }
+
+  /* Stats */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .sc { background: var(--bg2); border-radius: var(--radius); padding: 14px; }
+  .sc-lbl { font-size: 11px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+  .sc-val { font-size: 24px; font-weight: 600; color: var(--text); }
+  .sc-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Branch cards */
+  .branch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .bc { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; }
+  .bc-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .bc-name { font-size: 13px; font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-g { background: #63992a; }
+  .dot-a { background: var(--amber); }
+  .dot-x { background: #ccc; }
+  .bc-meta { font-size: 11px; color: var(--text2); line-height: 2; }
+  .pbar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; }
+  .pfill { height: 3px; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+
+  /* Badges */
+  .sbadge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .sam { background: var(--green-light); color: var(--green-mid); }
+  .spm { background: var(--amber-bg); color: var(--amber-text); }
+
+  /* Alerts */
+  .alert-box { background: var(--red-light); border: 0.5px solid var(--red-border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-icon { font-size: 13px; color: var(--red); flex-shrink: 0; margin-top: 1px; font-weight: 700; }
+  .alert-txt { font-size: 12px; color: var(--text); }
+
+  /* Filter row */
+  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-row select { width: auto; min-width: 140px; font-size: 12px; padding: 6px 10px; }
+  .filter-row label { font-size: 12px; color: var(--text2); }
+
+  /* Detail panel */
+  .detail-panel { background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; display: none; }
+  .detail-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .detail-title { font-size: 14px; font-weight: 600; }
+  .close-btn { cursor: pointer; font-size: 20px; color: var(--text2); background: none; border: none; font-family: inherit; line-height: 1; padding: 0 4px; }
+  .close-btn:hover { color: var(--text); }
+
+  /* Sub table */
+  .sub-row { cursor: pointer; }
+  .sub-row:hover td { background: #e8f4ff !important; }
+
+  /* Empty state */
+  .empty { font-size: 13px; color: var(--text2); padding: 28px; text-align: center; border: 0.5px dashed var(--border2); border-radius: var(--radius); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #fff; padding: 10px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+
+  /* Login screen */
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg3); padding: 20px; }
+  .login-card { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 36px 32px; width: 100%; max-width: 400px; }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .login-icon { width: 42px; height: 42px; background: var(--green); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+  .login-icon svg { width: 22px; height: 22px; fill: #fff; }
+  .login-title { font-size: 16px; font-weight: 600; }
+  .login-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  .role-card { border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.15s; background: var(--bg); }
+  .role-card:hover { border-color: var(--green); background: var(--green-light); }
+  .role-card.selected { border-color: var(--green); background: var(--green-light); }
+  .role-card.selected .role-icon { background: var(--green); }
+  .role-card.selected .role-icon svg { fill: #fff; }
+  .role-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--bg2); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.15s; }
+  .role-icon svg { width: 18px; height: 18px; fill: var(--text2); transition: all 0.15s; }
+  .role-lbl { font-size: 13px; font-weight: 500; color: var(--text); }
+  .role-desc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .login-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .login-fields .fg label { font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 4px; display: block; }
+  .login-err { font-size: 12px; color: var(--red); margin-bottom: 12px; display: none; }
+  .login-err.show { display: block; }
+  .topbar-user { display: flex; align-items: center; gap: 10px; }
+  .user-pill { font-size: 12px; color: var(--text2); background: var(--bg2); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); }
+  .logout-btn { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; font-family: inherit; }
+  .logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .topbar { padding: 12px; }
+    .view { padding: 12px; }
+    .nav { padding: 8px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="data:image/jpeg;base64,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" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #5BA829" alt="FFC Logo">
+      <div>
+        <div class="login-title">Fresh Fruits Company Inventory System</div>
+        <div class="login-sub">Hello Fruits — Branch Operations</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-weight:500">I am a...</div>
+    <div class="role-grid">
+      <div class="role-card" id="role-merch" onclick="selectRole('merchandiser')">
+        <div class="role-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+        <div class="role-lbl">Merchandiser</div>
+        <div class="role-desc">Fill daily inventory form</div>
+      </div>
+      <div class="role-card" id="role-super" onclick="selectRole('supervisor')">
+        <div class="role-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 3h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h12v2H3zm14 0l3 3-3 3v-2h-3v-2h3z"/></svg>
+        </div>
+        <div class="role-lbl">Supervisor</div>
+        <div class="role-desc">View dashboard & reports</div>
+      </div>
+      <div class="role-card" id="role-prod" onclick="selectRole('production')">
+        <div class="role-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 7h-1V6a4 4 0 0 0-8 0v1H9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-7-1a2 2 0 1 1 4 0v1h-4V6zm2 11-4-4h2v-3h4v3h2l-4 4z"/></svg>
+        </div>
+        <div class="role-lbl">Production</div>
+        <div class="role-desc">View queue & update status</div>
+      </div>
+    </div>
+
+    <div class="login-fields" id="merch-fields" style="display:none">
+      <div class="fg">
+        <label>Select your name</label>
+        <select id="login-name">
+          <option value="">Loading names...</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>PIN</label>
+        <input type="password" id="login-merch-pin" placeholder="Enter your PIN" maxlength="6">
+      </div>
+    </div>
+
+    <div class="login-fields" id="super-fields" style="display:none">
+      <div class="fg">
+        <label>Supervisor PIN</label>
+        <input type="password" id="login-pin" placeholder="Enter PIN" maxlength="6">
+      </div>
+    </div>
+
+    <div class="login-fields" id="prod-fields" style="display:none">
+      <div class="fg">
+        <label>Production PIN</label>
+        <input type="password" id="login-prod-pin" placeholder="Enter PIN" maxlength="6">
+      </div>
+    </div>
+
+    <div class="login-err" id="login-err">Incorrect PIN. Please try again.</div>
+
+    <button class="btn btn-green" style="width:100%" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<!-- MAIN APP (hidden until login) -->
+<div id="main-app" style="display:none">
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="data:image/jpeg;base64,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" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #5BA829" alt="FFC Logo">
+      <div>
+        <div class="topbar-title">Fresh Fruits Company Inventory System</div>
+        <div class="topbar-sub">Hello Fruits — Branch Operations</div>
+      </div>
+    </div>
+    <div class="topbar-user">
+      <span class="user-pill" id="topbar-user-label"></span>
+      <span class="topbar-date" id="curr-date" style="margin-right:6px"></span>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Nav (supervisor only) -->
+  <div class="nav" id="main-nav" style="display:none">
+    <button class="nav-btn active" data-role="merchandiser,supervisor" onclick="switchView('merch',this)">Merchandiser form</button>
+    <button class="nav-btn" data-role="merchandiser,supervisor" onclick="switchView('dash',this)">Supervisor dashboard</button>
+    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-orders',this)">Production orders</button>
+    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-summary',this)">Production summary</button>
+  </div>
+
+  <!-- ===== MERCHANDISER VIEW ===== -->
+  <div id="view-merch" class="view active">
+    <div id="succ-banner" class="succ-banner">
+      <div class="succ-title">Form submitted successfully</div>
+      <div class="succ-sub" id="succ-detail"></div>
+    </div>
+
+    <div id="sync-banner" class="succ-banner" style="display:block;background:#eef6ff;border-color:#b9d6ff">
+      <div class="succ-title" style="color:#124a8a">Shared shift handover enabled</div>
+      <div class="succ-sub" id="sync-detail" style="color:#2c5f9e">Select AM shift to show the previous day closing stock button. Click it to load previous day closing into opening stock.</div>
+    </div>
+
+    <div class="form-row" style="max-width:520px">
+      <div class="fg">
+        <label>Branch</label>
+        <select id="br">
+          <option value="">Select branch...</option>
+          <option value="festival">Carrefour Festival City</option>
+          <option value="dfc">Carrefour Dubai Festival</option>
+          <option value="moe">Carrefour Mall of Emirates</option>
+          <option value="deira">Carrefour Deira City</option>
+          <option value="marina">Carrefour Marina Mall</option>
+          <option value="vegetable_souk">Vegetable Souk</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Shift</label>
+        <select id="sh">
+          <option value="">Select shift...</option>
+          <option value="AM">AM Shift (Morning)</option>
+          <option value="PM">PM Shift (Evening)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Merchandiser name</label>
+        <input type="text" id="mn" placeholder="Your full name">
+      </div>
+      <div class="fg">
+        <label>Date</label>
+        <input type="date" id="fd" readonly>
+      </div>
+    </div>
+
+    <div id="carry-forward-wrap" style="display:none;justify-content:flex-start;margin:8px 0 14px">
+      <button class="btn" id="carry-forward-btn" type="button" onclick="loadCarryForwardStock()">Load Previous Day Closing Stock</button>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('pkg',this)">Packaged items</div>
+      <div class="tab" onclick="switchTab('ih',this)">In-house made</div>
+      <div class="tab" onclick="switchTab('rm',this)">Raw materials</div>
+    </div>
+
+    <!-- Packaged items -->
+    <div id="tab-pkg">
+      <div class="tbl-wrap">
+        <table>
+          <colgroup>
+            <col style="width:200px"><col style="width:42px">
+            <col style="width:60px"><col style="width:60px"><col style="width:60px">
+            <col style="width:60px"><col style="width:60px"><col style="width:60px">
+            <col style="width:68px"><col style="width:60px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Item</th><th>UOM</th><th>Opening</th><th>Received</th><th>Prepared</th>
+              <th>Sold</th><th>Expired</th><th>Returned</th><th>Closing</th><th>Order</th>
+            </tr>
+          </thead>
+          <tbody id="pkg-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- In-house made -->
+    <div id="tab-ih" style="display:none">
+      <div class="tbl-wrap">
+        <table>
+          <colgroup>
+            <col style="width:200px"><col style="width:42px">
+            <col style="width:62px"><col style="width:62px"><col style="width:68px">
+            <col style="width:60px"><col style="width:60px"><col style="width:68px">
+            <col style="width:78px"><col style="width:100px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Item</th><th>UOM</th><th>AM prep</th><th>PM prep</th><th>Total</th>
+              <th>Sold</th><th>Expired</th><th>Sampling</th><th>Cust. return</th><th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="ih-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Raw materials -->
+    <div id="tab-rm" style="display:none">
+      <div class="tbl-wrap">
+        <table>
+          <colgroup>
+            <col style="width:200px"><col style="width:55px">
+            <col style="width:62px"><col style="width:62px"><col style="width:62px">
+            <col style="width:62px"><col style="width:70px"><col style="width:62px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Item</th><th>UOM</th><th>Opening</th><th>Received</th>
+              <th>Used</th><th>Damage</th><th>Closing</th><th>Order</th>
+            </tr>
+          </thead>
+          <tbody id="rm-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="fg" style="margin-top:6px">
+      <label>General remarks (optional)</label>
+      <textarea id="gr" rows="2" placeholder="Any notes for the supervisor..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="clearForm()">Clear form</button>
+      <button class="btn btn-green" onclick="submitForm()">Submit to dashboard</button>
+    </div>
+  </div>
+
+  <!-- ===== SUPERVISOR DASHBOARD ===== -->
+  <div id="view-dash" class="view">
+    <div class="stat-grid">
+      <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
+      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 6 branches</div></div>
+      <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
+      <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
+    </div>
+
+    <div id="alert-section"></div>
+
+    <div class="sec-hdr">Branch status</div>
+    <div class="branch-grid" id="br-grid"></div>
+
+    <div class="sec-hdr">Submissions</div>
+    <div class="filter-row">
+      <label>Filter:</label>
+      <select id="f-branch" onchange="renderDash()">
+        <option value="">All branches</option>
+        <option value="festival">Festival City</option>
+        <option value="dfc">Dubai Festival</option>
+        <option value="moe">Mall of Emirates</option>
+        <option value="deira">Deira City</option>
+        <option value="marina">Marina Mall</option>
+        <option value="vegetable_souk">Vegetable Souk</option>
+      </select>
+      <select id="f-shift" onchange="renderDash()">
+        <option value="">All shifts</option>
+        <option value="AM">AM shift</option>
+        <option value="PM">PM shift</option>
+      </select>
+      <button class="btn btn-excel" id="export-btn" onclick="exportExcel()">&#11015; Download Excel</button>
+    </div>
+
+    <div id="detail-panel" class="detail-panel">
+      <div class="detail-hdr">
+        <div class="detail-title" id="dp-title">Submission detail</div>
+        <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+      </div>
+      <div id="dp-body"></div>
+    </div>
+
+    <div id="sub-list"></div>
+  </div>
+
+  <!-- ===== PRODUCTION ORDERS ===== -->
+  <div id="view-prod-orders" class="view">
+    <div class="sec-hdr" style="margin-top:0">Production order review</div>
+    <div class="filter-row">
+      <label>Filter:</label>
+      <select id="po-status" onchange="renderProductionOrders()">
+        <option value="">All statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Sent to Production">Sent to Production</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <select id="po-branch" onchange="renderProductionOrders()">
+        <option value="">All branches</option>
+        <option value="festival">Festival City</option>
+        <option value="dfc">Dubai Festival</option>
+        <option value="moe">Mall of Emirates</option>
+        <option value="deira">Deira City</option>
+        <option value="marina">Marina Mall</option>
+        <option value="vegetable_souk">Vegetable Souk</option>
+      </select>
+      <button class="btn" onclick="renderProductionOrders()">Refresh</button>
+    </div>
+    <div id="prod-orders-list"></div>
+  </div>
+
+  <!-- ===== PRODUCTION SUMMARY ===== -->
+  <div id="view-prod-summary" class="view">
+    <div class="sec-hdr" style="margin-top:0">Consolidated production summary</div>
+    <div class="filter-row">
+      <label>Summary:</label>
+      <select id="ps-scope" onchange="renderProductionSummary()">
+        <option value="all">All except rejected</option>
+        <option value="active">Approved + sent</option>
+        <option value="completed">Completed only</option>
+      </select>
+      <button class="btn" onclick="renderProductionSummary()">Refresh</button>
+    </div>
+    <div id="prod-summary-list"></div>
+  </div>
+
+</div><!-- end .app -->
+</div><!-- end #main-app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BRANCHES = {
+  festival: 'Carrefour Festival City',
+  dfc: 'Carrefour Dubai Festival',
+  moe: 'Carrefour Mall of Emirates',
+  deira: 'Carrefour Deira City',
+  marina: 'Carrefour Marina Mall',
+  vegetable_souk: 'Vegetable Souk'
+};
+const BRANCH_SHORT = {
+  festival:'Festival City',
+  dfc:'Dubai Festival',
+  moe:'Mall of Emirates',
+  deira:'Deira City',
+  marina:'Marina Mall',
+  vegetable_souk:'Vegetable Souk'
+};
+
+let PKG = [];
+let IH = [];
+let RM = [];
+
+function normalizeItemRow(row) {
+  const resolvedType = row.item_type || row.type || '';
+  return {
+    c: row.item_code || '',
+    n: row.item_name || '',
+    u: row.uom || '',
+    type: resolvedType,
+    item_type: resolvedType,
+    category: row.category || '',
+    item_id: row.item_id || null,
+    display_order: Number(row.display_order || 0)
+  };
+}
+
+function groupLabel(item) {
+  return String(item.type || item.category || 'Other').trim() || 'Other';
+}
+
+function sortBranchItems(rows) {
+  return [...rows].sort((a, b) => {
+    const groupCmp = groupLabel(a).localeCompare(groupLabel(b));
+    if (groupCmp !== 0) return groupCmp;
+    const orderCmp = (Number(a.display_order || 0) - Number(b.display_order || 0));
+    if (orderCmp !== 0) return orderCmp;
+    return String(a.n || '').localeCompare(String(b.n || ''));
+  });
+}
+
+function appendGroupHeader(tb, label, colspan) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td colspan="${colspan}" style="background:var(--green-light);color:var(--green-text);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px">${label}</td>`;
+  tb.appendChild(tr);
+}
+
+async function loadBranchItems(branch) {
+  if (!branch) {
+    PKG = [];
+    IH = [];
+    RM = [];
+    buildPkg();
+    buildIh();
+    buildRm();
+    return;
+  }
+
+  const { data, error } = await db.rpc('list_branch_items', { p_branch: branch });
+  if (error) {
+    console.error('Item load error:', error);
+    showToast('Could not load branch items. Check Supabase item setup.');
+    return;
+  }
+
+  const rows = (data || []).map(normalizeItemRow);
+  console.log('Loaded branch items for', branch, rows);
+  PKG = sortBranchItems(rows.filter(r => r.item_type === 'packaged'));
+  IH  = sortBranchItems(rows.filter(r => r.item_type === 'inhouse'));
+  RM  = sortBranchItems(rows.filter(r => r.item_type === 'raw_material'));
+
+  buildPkg();
+  buildIh();
+  buildRm();
+  if (rows.length === 0) showToast('No items mapped for this branch.');
+}
+
+async function handleBranchChange() {
+  const branch = document.getElementById('br').value;
+  await loadBranchItems(branch);
+  updateCarryForwardButtonVisibility();
+}
+
+// ===== SUPABASE CONFIG — REPLACE THESE TWO VALUES =====
+const SUPABASE_URL = 'https://acxwbrjxldzywhqphsji.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeHdicmp4bGR6eXdocXBoc2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjIxMTksImV4cCI6MjA5MTYzODExOX0.yjSXKq86KjMZAWkvQbLq1dVZJY_6TFLWtvwe7kBIIpI';// =========================================================
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let submissions = [];  // local cache, loaded from Supabase on dashboard open
+let productionOrders = [];
+
+function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
+function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
+
+function buildPkg() {
+  const tb = document.getElementById('pkg-tb'); tb.innerHTML = '';
+  let lastGroup = '';
+  PKG.forEach((it, i) => {
+    const currGroup = groupLabel(it);
+    if (currGroup !== lastGroup) {
+      appendGroupHeader(tb, currGroup, 10);
+      lastGroup = currGroup;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="iname">${it.n}</div><div class="icode">${it.c}</div></td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+      <td>${ni(`p${i}_op`)}</td>
+      <td>${ni(`p${i}_rc`)}</td>
+      <td>${ni(`p${i}_pr`)}</td>
+      <td>${ni(`p${i}_so`)}</td>
+      <td>${ni(`p${i}_ex`)}</td>
+      <td>${ni(`p${i}_re`)}</td>
+      <td>${ni(`p${i}_cl`)}</td>
+      <td>${ni(`p${i}_or`)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function buildIh() {
+  const tb = document.getElementById('ih-tb'); tb.innerHTML = '';
+  let lastGroup = '';
+  IH.forEach((it, i) => {
+    const currGroup = groupLabel(it);
+    if (currGroup !== lastGroup) {
+      appendGroupHeader(tb, currGroup, 10);
+      lastGroup = currGroup;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="iname">${it.n}</td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+      ${['am','pm','tot','so','ex','sa','cr'].map(f => `<td>${ni(`ih${i}_${f}`)}</td>`).join('')}
+      <td><input type="text" class="ni" id="ih${i}_rem" style="text-align:left" placeholder=""></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+
+function buildRm() {
+  const tb = document.getElementById('rm-tb'); tb.innerHTML = '';
+  let lastGroup = '';
+  RM.forEach((it, i) => {
+    const currGroup = groupLabel(it);
+    if (currGroup !== lastGroup) {
+      appendGroupHeader(tb, currGroup, 8);
+      lastGroup = currGroup;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="iname">${it.n}</div>${it.c ? `<div class="icode">${it.c}</div>` : ''}</td>
+      <td style="color:var(--text3);font-size:11px">${it.u}</td>
+      <td>${ni(`rm${i}_op`)}</td>
+      <td>${ni(`rm${i}_rc`)}</td>
+      <td>${ni(`rm${i}_us`)}</td>
+      <td>${ni(`rm${i}_da`)}</td>
+      <td>${ni(`rm${i}_cl`)}</td>
+      <td>${ni(`rm${i}_or`)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+
+function switchView(v, btn) {
+  document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  btn.classList.add('active');
+  if (v === 'dash') renderDash();
+  if (v === 'prod-orders') renderProductionOrders();
+  if (v === 'prod-summary') renderProductionSummary();
+}
+
+function switchTab(t, el) {
+  ['pkg','ih','rm'].forEach(x => document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none');
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+}
+
+
+function updateCarryForwardButtonVisibility() {
+  const wrap = document.getElementById('carry-forward-wrap');
+  const shift = (document.getElementById('sh') || {}).value || '';
+  if (!wrap) return;
+  wrap.style.display = shift === 'AM' ? 'flex' : 'none';
+  if (shift === 'AM') {
+    updateSyncBanner('AM shift selected. Select AM shift to show the previous day closing stock button. Click it to load previous day closing into opening stock.');
+  } else if (shift === 'PM') {
+    updateSyncBanner('PM shift selected. All fields are manual. Previous day closing stock load is available only for AM shift.');
+  } else {
+    updateSyncBanner('Select shift first. The previous day opening stock button appears only for AM shift.');
+  }
+}
+
+function enforceCurrentDateLock() {
+  const fd = document.getElementById('fd');
+  if (!fd) return;
+  const today = new Date().toISOString().split('T')[0];
+  fd.value = today;
+  fd.min = today;
+  fd.max = today;
+  if (currentRole === 'merchandiser') {
+    fd.setAttribute('readonly', true);
+    fd.setAttribute('disabled', true);
+  } else {
+    fd.removeAttribute('disabled');
+  }
+}
+
+function clearForm() {
+  document.querySelectorAll('.ni').forEach(e => e.value = '');
+  updateCarryForwardButtonVisibility();
+  document.getElementById('gr').value = '';
+  if (currentRole !== 'merchandiser') {
+    document.getElementById('br').value = '';
+    document.getElementById('sh').value = '';
+    document.getElementById('mn').value = '';
+    loadBranchItems('');
+  } else {
+    document.getElementById('sh').value = '';
+  }
+  enforceCurrentDateLock();
+  switchTab('pkg', document.querySelector('.tab'));
+}
+
+
+function collectPkg() {
+  return PKG.map((it, i) => ({
+    code: it.c, name: it.n, uom: it.u,
+    opening: gv(`p${i}_op`), received: gv(`p${i}_rc`), prepared: gv(`p${i}_pr`),
+    sold: gv(`p${i}_so`), expired: gv(`p${i}_ex`), returned: gv(`p${i}_re`),
+    closing: gv(`p${i}_cl`),
+    order: gv(`p${i}_or`)
+  }));
+}
+
+function collectIh() {
+  return IH.map((it, i) => ({
+    code: it.c || '', name: it.n, uom: it.u,
+    am: gv(`ih${i}_am`), pm: gv(`ih${i}_pm`),
+    total: gv(`ih${i}_tot`),
+    sold: gv(`ih${i}_so`), expired: gv(`ih${i}_ex`),
+    sampling: gv(`ih${i}_sa`), custReturn: gv(`ih${i}_cr`),
+    remarks: (document.getElementById(`ih${i}_rem`) || {}).value || ''
+  }));
+}
+
+function collectRm() {
+  return RM.map((it, i) => ({
+    code: it.c || '', name: it.n, uom: it.u,
+    opening: gv(`rm${i}_op`), received: gv(`rm${i}_rc`),
+    used: gv(`rm${i}_us`), damage: gv(`rm${i}_da`),
+    closing: gv(`rm${i}_cl`),
+    order: gv(`rm${i}_or`)
+  }));
+}
+
+
+function updateSyncBanner(msg, isWarning = false) {
+  const detail = document.getElementById('sync-detail');
+  if (!detail) return;
+  detail.textContent = msg;
+  detail.style.color = isWarning ? 'var(--red)' : '#2c5f9e';
+}
+
+
+
+function normalizeCarryCode(v) {
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  const compact = s.replace(/\s+/g, '').replace(/\.0+$/,'');
+  const digitsOnly = compact.replace(/[^\d]/g, '');
+  return digitsOnly || compact.toLowerCase();
+}
+
+function normalizeCarryName(v) {
+  return String(v ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function rowCode(row) {
+  return row?.code ?? row?.item_code ?? row?.c ?? '';
+}
+
+function rowName(row) {
+  return row?.name ?? row?.item_name ?? row?.n ?? '';
+}
+
+function closingValue(row) {
+  const raw = row?.closing ?? row?.cl ?? row?.closing_stock ?? row?.Closing ?? 0;
+  const num = Number(raw);
+  return Number.isFinite(num) && num > 0 ? num : 0;
+}
+
+function buildCarryLookup(rows) {
+  const byCode = new Map();
+  const byName = new Map();
+
+  (rows || []).forEach((row, idx) => {
+    const close = closingValue(row);
+    if (close <= 0) return;
+
+    const normalized = { ...row, __close: close, __idx: idx };
+    const codeKey = normalizeCarryCode(rowCode(row));
+    const nameKey = normalizeCarryName(rowName(row));
+
+    if (codeKey && !byCode.has(codeKey)) byCode.set(codeKey, normalized);
+    if (nameKey && !byName.has(nameKey)) byName.set(nameKey, normalized);
+  });
+
+  return { byCode, byName };
+}
+
+function findCarryMatch(lookup, item, rows, idx) {
+  const codeKey = normalizeCarryCode(item.c || item.code || item.item_code);
+  const nameKey = normalizeCarryName(item.n || item.name || item.item_name);
+
+  let prev = (codeKey && lookup.byCode.get(codeKey))
+    || (nameKey && lookup.byName.get(nameKey))
+    || null;
+
+  if (!prev && nameKey) {
+    const loose = (rows || []).find(r => {
+      const close = closingValue(r);
+      if (close <= 0) return false;
+      const rn = normalizeCarryName(rowName(r));
+      return rn && (rn.includes(nameKey) || nameKey.includes(rn));
+    });
+    if (loose) prev = loose;
+  }
+
+  if (!prev && rows[idx]) {
+    const fallbackClose = closingValue(rows[idx]);
+    if (fallbackClose > 0) prev = rows[idx];
+  }
+
+  return prev;
+}
+
+function applyCarryForward(items, prefix, sourceRows) {
+  const rows = sourceRows || [];
+  const lookup = buildCarryLookup(rows);
+
+  items.forEach((it, i) => {
+    const prev = findCarryMatch(lookup, it, rows, i);
+    const op = document.getElementById(`${prefix}${i}_op`);
+    if (!op) return;
+    const close = prev ? closingValue(prev) : 0;
+    op.value = close > 0 ? close : 0;
+  });
+}
+
+function fillOpeningFromSubmission(source) {
+  if (!source) return;
+
+  applyCarryForward(PKG, 'p', source.pkg || []);
+  applyCarryForward(RM, 'rm', source.rm || []);
+
+  console.log('Carry-forward source', {
+    sourceDate: source.date,
+    sourceShift: source.shift,
+    pkgRows: source.pkg || [],
+    rmRows: source.rm || []
+  });
+}
+
+function chooseLatestNonZeroRows(submissions, dataKey) {
+  const selected = [];
+  const keyIndex = new Map();
+
+  (submissions || []).forEach(sub => {
+    const rows = Array.isArray(sub?.[dataKey]) ? sub[dataKey] : [];
+    rows.forEach((row, idx) => {
+      const close = closingValue(row);
+      if (close <= 0) return;
+
+      const codeKey = normalizeCarryCode(rowCode(row));
+      const nameKey = normalizeCarryName(rowName(row));
+      const rowKey = codeKey || nameKey || `idx:${idx}`;
+
+      if (!keyIndex.has(rowKey)) {
+        keyIndex.set(rowKey, selected.length);
+        selected.push(row);
+      }
+    });
+  });
+
+  return selected;
+}
+
+async function loadCarryForwardStock() {
+  const branch = document.getElementById('br').value;
+  const date = document.getElementById('fd').value;
+  if (!branch || !date) {
+    updateCarryForwardButtonVisibility();
+    return;
+  }
+
+  const { data, error } = await db
+    .from('submissions')
+    .select('*')
+    .eq('branch', branch)
+    .eq('sub_date', new Date(new Date(date).getTime() - 86400000).toISOString().split('T')[0])
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  if (error) {
+    console.error('Carry-forward load error:', error);
+    updateSyncBanner('Could not load carry-forward stock from the shared dashboard.', true);
+    return;
+  }
+
+  const rows = (data || []).map(rowToSub);
+
+  if (!rows.length) {
+    updateSyncBanner('No previous day closing stock was found for this branch yet. Enter the opening balances manually for the first day.');
+    return;
+  }
+
+  const mergedSource = {
+    branchShort: rows[0].branchShort,
+    date: rows[0].date,
+    time: rows[0].time,
+    shift: rows[0].shift,
+    pkg: chooseLatestNonZeroRows(rows, 'pkg'),
+    rm: chooseLatestNonZeroRows(rows, 'rm')
+  };
+
+  fillOpeningFromSubmission(mergedSource);
+  updateSyncBanner(`Opening stock auto-loaded from the last ${rows.length} submission(s) of ${mergedSource.branchShort} on ${mergedSource.date}. For each packaged item and raw material, the latest previous-day closing greater than 0 was used. Items without previous closing stay at 0.`);
+}
+
+async function submitForm() {
+  const branch = document.getElementById('br').value;
+  const shift  = document.getElementById('sh').value;
+  const name   = document.getElementById('mn').value.trim();
+  if (!branch || !shift || !name) { showToast('Please fill branch, shift and your name'); return; }
+
+  const submitBtn = document.querySelector('.btn-green[onclick="submitForm()"]');
+  submitBtn.textContent = 'Saving...';
+  submitBtn.disabled = true;
+
+  const pkgRows = collectPkg();
+  const ihRows = collectIh();
+  const rmRows = collectRm();
+  const expFlags = pkgRows.filter(r => Number(r.expired) > 0).map(r => ({name: r.name, qty: r.expired}));
+  const now = new Date();
+  const subDate = currentRole === 'merchandiser' ? now.toISOString().split('T')[0] : (document.getElementById('fd').value || now.toISOString().split('T')[0]);
+  const subTime = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  const productionRows = buildProductionRows({
+    id: null,
+    date: subDate,
+    branch,
+    branchName: BRANCHES[branch],
+    branchShort: BRANCH_SHORT[branch],
+    shift,
+    name
+  }, pkgRows, rmRows);
+
+  const payload = {
+    branch,
+    branch_name: BRANCHES[branch],
+    branch_short: BRANCH_SHORT[branch],
+    shift,
+    merchandiser: name,
+    sub_date: subDate,
+    sub_time: subTime,
+    remarks: document.getElementById('gr').value || '',
+    expired_items: expFlags,
+    pkg_data: pkgRows,
+    ih_data: ihRows,
+    rm_data: rmRows,
+    production_orders: productionRows,
+    actor_name: currentUser || name,
+    actor_role: currentRole || 'merchandiser'
+  };
+
+  const { data, error } = await db.rpc('create_submission_with_orders', { p_payload: payload });
+
+  submitBtn.textContent = 'Submit to dashboard';
+  submitBtn.disabled = false;
+
+  if (error) {
+    console.error(error);
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('already exists')) {
+      showToast('A submission for this branch, date, and shift already exists.');
+    } else {
+      showToast('Save failed. Nothing was committed. Check connection or SQL function setup.');
+    }
+    return;
+  }
+
+  document.getElementById('succ-detail').textContent =
+    `${BRANCHES[branch]} — ${shift} shift — submitted by ${name} at ${subTime}`;
+  clearForm();
+  document.getElementById('succ-banner').classList.add('show');
+  showToast(productionRows.length ? `Saved successfully and created ${productionRows.length} production order(s)` : 'Saved successfully');
+
+  if (currentRole === 'supervisor') await renderDash();
+}
+
+// Convert a raw Supabase DB row to the shape the UI expects
+function rowToSub(row) {
+  return {
+    id: row.id,
+    branch: row.branch,
+    branchName: row.branch_name,
+    branchShort: row.branch_short,
+    shift: row.shift,
+    name: row.merchandiser,
+    date: row.sub_date,
+    time: row.sub_time,
+    remarks: row.remarks || '',
+    expiredItems: JSON.parse(row.expired_items || '[]'),
+    pkg: JSON.parse(row.pkg_data || '[]'),
+    ih:  JSON.parse(row.ih_data  || '[]'),
+    rm:  JSON.parse(row.rm_data  || '[]')
+  };
+}
+
+function buildProductionRows(submission, pkgRows, rmRows) {
+  const rows = [];
+  pkgRows.filter(r => Number(r.order) > 0).forEach(r => rows.push({
+    submission_id: submission.id,
+    order_date: submission.date,
+    branch: submission.branch,
+    branch_name: submission.branchName,
+    branch_short: submission.branchShort,
+    shift: submission.shift,
+    item_type: 'packaged',
+    item_code: r.code || '',
+    item_name: r.name,
+    uom: r.uom || '',
+    qty: Number(r.order) || 0,
+    submitted_by: submission.name,
+    submission_time: submission.time,
+    supervisor_status: 'Pending',
+    production_status: 'Pending',
+    supervisor_remarks: '',
+    production_remarks: ''
+  }));
+  rmRows.filter(r => Number(r.order) > 0).forEach(r => rows.push({
+    submission_id: submission.id,
+    order_date: submission.date,
+    branch: submission.branch,
+    branch_name: submission.branchName,
+    branch_short: submission.branchShort,
+    shift: submission.shift,
+    item_type: 'raw_material',
+    item_code: r.code || '',
+    item_name: r.name,
+    uom: r.uom || '',
+    qty: Number(r.order) || 0,
+    submitted_by: submission.name,
+    submission_time: submission.time,
+    supervisor_status: 'Pending',
+    production_status: 'Pending',
+    supervisor_remarks: '',
+    production_remarks: ''
+  }));
+  return rows;
+}
+
+function rowToProduction(row) {
+  return {
+    id: row.id,
+    submissionId: row.submission_id,
+    date: row.order_date,
+    branch: row.branch,
+    branchName: row.branch_name || BRANCHES[row.branch] || row.branch,
+    branchShort: row.branch_short || BRANCH_SHORT[row.branch] || row.branch,
+    shift: row.shift || '',
+    itemType: row.item_type || '',
+    itemCode: row.item_code || '',
+    itemName: row.item_name || '',
+    uom: row.uom || '',
+    qty: Number(row.qty) || 0,
+    submittedBy: row.submitted_by || '',
+    submissionTime: row.submission_time || '',
+    supervisorStatus: row.supervisor_status || 'Pending',
+    productionStatus: row.production_status || 'Pending',
+    supervisorRemarks: row.supervisor_remarks || '',
+    productionRemarks: row.production_remarks || ''
+  };
+}
+
+async function loadProductionOrders() {
+  let query = db
+    .from('production_orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (currentRole !== 'supervisor') {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 4);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    query = query.gte('order_date', startDateStr);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Production load error:', error);
+    productionOrders = [];
+    return;
+  }
+  productionOrders = (data || []).map(rowToProduction);
+}
+
+function getFilteredProductionOrders() {
+  const status = (document.getElementById('po-status') || {}).value || '';
+  const branch = (document.getElementById('po-branch') || {}).value || '';
+  return productionOrders.filter(r => (!status || r.supervisorStatus === status) && (!branch || r.branch === branch));
+}
+
+async function updateProductionOrder(id, patch) {
+  const payload = {
+    p_order_id: id,
+    p_actor_name: currentUser || 'System',
+    p_actor_role: currentRole || 'unknown',
+    p_supervisor_status: patch.supervisor_status || null,
+    p_production_status: patch.production_status || null,
+    p_supervisor_remarks: patch.supervisor_remarks || null,
+    p_production_remarks: patch.production_remarks || null
+  };
+  const { error } = await db.rpc('update_production_order_status', payload);
+  if (error) {
+    console.error(error);
+    showToast(error.message || 'Could not update production order');
+    return;
+  }
+  showToast('Production order updated');
+  await renderProductionOrders();
+}
+
+async function renderProductionOrders() {
+  const target = document.getElementById('prod-orders-list');
+  if (!target) return;
+  target.innerHTML = '<div class="empty">Loading production orders...</div>';
+  await loadProductionOrders();
+  let rows = getFilteredProductionOrders();
+  if (currentRole === 'production') {
+    rows = rows.filter(r => r.supervisorStatus === 'Sent to Production' || ['In Production','Completed'].includes(r.productionStatus));
+  }
+  if (!rows.length) {
+    target.innerHTML = `<div class="empty">${currentRole === 'production' ? 'No production orders are currently assigned to production.' : 'No production orders found. Since rows exist in Supabase, this usually means an old cached file or the page is still connected to a different Supabase project.'}</div>`;
+    return;
+  }
+  target.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Showing ${rows.length} production order(s)</div><div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Date</th><th>Branch</th><th>Shift</th><th>Type</th><th>Item</th><th>Qty</th><th>Submitted by</th><th>Supervisor status</th><th>Production</th><th>Actions</th>
+    </tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td>${r.date}</td>
+      <td>${r.branchShort}</td>
+      <td><span class="sbadge ${r.shift === 'AM' ? 'sam' : 'spm'}">${r.shift || '—'}</span></td>
+      <td style="text-transform:capitalize">${r.itemType.replace('_',' ')}</td>
+      <td><div class="iname">${r.itemName}</div><div class="icode">${r.itemCode || ''} ${r.uom ? '· ' + r.uom : ''}</div></td>
+      <td style="font-weight:600">${r.qty}</td>
+      <td>${r.submittedBy}<div class="icode">${r.submissionTime || ''}</div></td>
+      <td>${r.supervisorStatus}</td>
+      <td>${r.productionStatus}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${currentRole === 'supervisor' && r.supervisorStatus === 'Pending' ? `<button class="btn" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Approved'})">Approve</button><button class="btn" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Rejected'})">Reject</button>` : ''}
+          ${currentRole === 'supervisor' && r.supervisorStatus === 'Approved' ? `<button class="btn btn-green" onclick="updateProductionOrder('${r.id}', {supervisor_status:'Sent to Production'})">Send</button>` : ''}
+          ${currentRole === 'production' && r.supervisorStatus === 'Sent to Production' && r.productionStatus === 'Pending' ? `<button class="btn" onclick="updateProductionOrder('${r.id}', {production_status:'In Production'})">Start</button>` : ''}
+          ${currentRole === 'production' && r.productionStatus === 'In Production' ? `<button class="btn btn-green" onclick="updateProductionOrder('${r.id}', {production_status:'Completed'})">Complete</button>` : ''}
+          ${currentRole === 'supervisor' && r.productionStatus === 'In Production' ? `<span class="icode">Production working</span>` : ''}
+          ${currentRole === 'supervisor' && r.productionStatus === 'Completed' ? `<span class="icode" style="color:var(--green-mid)">Completed by production</span>` : ''}
+        </div>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function renderProductionSummary() {
+  const target = document.getElementById('prod-summary-list');
+  if (!target) return;
+  target.innerHTML = '<div class="empty">Loading production summary...</div>';
+  await loadProductionOrders();
+  const scope = (document.getElementById('ps-scope') || {}).value || 'all';
+  let rows = productionOrders.filter(r => r.supervisorStatus !== 'Rejected');
+  if (scope === 'active') rows = rows.filter(r => ['Approved','Sent to Production'].includes(r.supervisorStatus) || ['In Production'].includes(r.productionStatus));
+  if (currentRole === 'production') rows = rows.filter(r => r.supervisorStatus === 'Sent to Production' || ['In Production','Completed'].includes(r.productionStatus));
+  if (scope === 'completed') rows = rows.filter(r => r.productionStatus === 'Completed');
+  if (!rows.length) {
+    target.innerHTML = '<div class="empty">No production summary rows available for this filter. Pending orders only appear when Summary is set to All except rejected.</div>';
+    return;
+  }
+  const grouped = {};
+  rows.forEach(r => {
+    const key = [r.itemType, r.itemName, r.uom].join('|');
+    if (!grouped[key]) grouped[key] = {itemType:r.itemType, itemName:r.itemName, uom:r.uom, totalQty:0, branches:{}, statuses:new Set()};
+    grouped[key].totalQty += Number(r.qty) || 0;
+    grouped[key].branches[r.branchShort] = (grouped[key].branches[r.branchShort] || 0) + (Number(r.qty) || 0);
+    grouped[key].statuses.add(r.supervisorStatus === 'Sent to Production' ? r.productionStatus || 'Pending' : r.supervisorStatus);
+  });
+  const cards = Object.values(grouped).sort((a,b) => a.itemName.localeCompare(b.itemName));
+  target.innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>Total Qty</th><th>Branch breakdown</th><th>Status mix</th></tr></thead>
+    <tbody>${cards.map(c => `<tr>
+      <td><div class="iname">${c.itemName}</div><div class="icode">${c.uom || ''}</div></td>
+      <td style="text-transform:capitalize">${c.itemType.replace('_',' ')}</td>
+      <td style="font-weight:700">${c.totalQty}</td>
+      <td>${Object.entries(c.branches).map(([b,q]) => `${b}: ${q}`).join('<br>')}</td>
+      <td>${Array.from(c.statuses).join(', ')}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+function getFiltered() {
+  const forcedBranch = currentRole === 'merchandiser' ? currentBranch : '';
+  const fb = forcedBranch || ((document.getElementById('f-branch') || {}).value || '');
+  const fs = (document.getElementById('f-shift')  || {}).value || '';
+  return submissions.filter(s => (!fb || s.branch === fb) && (!fs || s.shift === fs));
+}
+
+async function loadSubmissions() {
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 4);
+  const startDateStr = startDate.toISOString().split('T')[0];
+
+  let query = db
+    .from('submissions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // Supervisor sees rolling last 5 days, merchandiser stays focused on today for handover.
+  if (currentRole === 'supervisor') {
+    query = query.gte('sub_date', startDateStr);
+  } else {
+    const todayStr = today.toISOString().split('T')[0];
+    query = query.eq('sub_date', todayStr);
+  }
+
+  const { data, error } = await query;
+  if (error) { console.error('Load error:', error); return; }
+  submissions = (data || []).map(rowToSub);
+}
+
+async function renderDash() {
+  document.getElementById('sub-list').innerHTML = '<div class="empty">Loading...</div>';
+  await loadSubmissions();
+  const today = new Date().toISOString().split('T')[0];
+  const allToday = submissions.filter(s => s.date === today || !s.date);
+  const scopeSubs = currentRole === 'merchandiser'
+    ? allToday.filter(s => s.branch === currentBranch)
+    : submissions;
+  const filtered = currentRole === 'merchandiser'
+    ? getFiltered().filter(s => s.date === today || !s.date)
+    : getFiltered();
+  const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
+  const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+  const expectedCount = currentRole === 'merchandiser' ? 2 : Object.keys(BRANCHES).length * 2;
+  const supervisorTodayCount = allToday.length;
+
+  document.getElementById('ds-sub').textContent  = scopeSubs.length;
+  document.getElementById('ds-br').textContent   = currentRole === 'merchandiser' ? 1 : brs;
+  document.getElementById('ds-ex').textContent   = exf;
+  document.getElementById('ds-pend').textContent = currentRole === 'merchandiser'
+    ? Math.max(0, expectedCount - scopeSubs.length)
+    : Math.max(0, expectedCount - supervisorTodayCount);
+
+  const statLabels = document.querySelectorAll('.sc-lbl');
+  const statSubs = document.querySelector('#ds-sub')?.nextElementSibling;
+  const statBranches = document.querySelector('#ds-br')?.nextElementSibling;
+  const statExpired = document.querySelector('#ds-ex')?.nextElementSibling;
+  const statPending = document.querySelector('#ds-pend')?.nextElementSibling;
+
+  if (currentRole === 'supervisor') {
+    if (statLabels[0]) statLabels[0].textContent = 'Submissions last 5 days';
+    if (statLabels[1]) statLabels[1].textContent = 'Branches reported';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags last 5 days';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending today';
+    if (statSubs) statSubs.textContent = 'rolling 5-day view';
+    if (statBranches) statBranches.textContent = 'active in last 5 days';
+    if (statExpired) statExpired.textContent = 'across last 5 days';
+    if (statPending) statPending.textContent = 'today only';
+  } else {
+    if (statLabels[0]) statLabels[0].textContent = 'Submissions today';
+    if (statLabels[1]) statLabels[1].textContent = 'My branch';
+    if (statLabels[2]) statLabels[2].textContent = 'Expired flags';
+    if (statLabels[3]) statLabels[3].textContent = 'Pending';
+    if (statSubs) statSubs.textContent = 'of 2 expected';
+    if (statBranches) statBranches.textContent = 'your branch only';
+    if (statExpired) statExpired.textContent = 'today for your branch';
+    if (statPending) statPending.textContent = 'submissions needed today';
+  }
+
+  const branchFilter = document.getElementById('f-branch');
+  const exportBtn = document.getElementById('export-btn');
+  if (currentRole === 'merchandiser') {
+    if (branchFilter) branchFilter.style.display = 'none';
+    if (exportBtn) exportBtn.style.display = 'none';
+  } else {
+    if (branchFilter) branchFilter.style.display = '';
+    if (exportBtn) exportBtn.style.display = '';
+  }
+
+  const expSubs = scopeSubs.filter(s => s.expiredItems?.length > 0);
+  document.getElementById('alert-section').innerHTML = expSubs.length > 0
+    ? `<div class="sec-hdr" style="margin-top:0">${currentRole === 'merchandiser' ? 'My branch alerts' : 'Alerts'}</div>` +
+      expSubs.map(s => s.expiredItems.map(e => `
+        <div class="alert-box">
+          <div class="alert-icon">!</div>
+          <div class="alert-txt"><strong>${s.branchShort} (${s.shift})</strong> — ${e.name}: ${e.qty} expired unit(s) — reported by ${s.name}</div>
+        </div>`).join('')).join('') : '';
+
+  const branchEntries = currentRole === 'merchandiser'
+    ? [[currentBranch, BRANCH_SHORT[currentBranch]]]
+    : Object.entries(BRANCH_SHORT);
+
+  document.getElementById('br-grid').innerHTML = branchEntries.map(([id, name]) => {
+    const bs = scopeSubs.filter(s => s.branch === id);
+    const am = bs.some(s => s.shift === 'AM'), pm = bs.some(s => s.shift === 'PM');
+    const prog = Math.round(((am ? 1 : 0) + (pm ? 1 : 0)) / 2 * 100);
+    const cls = prog === 100 ? 'dot-g' : prog > 0 ? 'dot-a' : 'dot-x';
+    return `<div class="bc">
+      <div class="bc-hdr"><div class="bc-name">${name}</div><div class="dot ${cls}"></div></div>
+      <div class="bc-meta">
+        AM: <span style="color:${am?'var(--green-mid)':'var(--amber)'};font-weight:500">${am ? 'Submitted' : 'Pending'}</span><br>
+        PM: <span style="color:${pm?'var(--green-mid)':'var(--amber)'};font-weight:500">${pm ? 'Submitted' : 'Pending'}</span><br>
+        ${bs.length ? `Last: ${bs[bs.length-1].name} at ${bs[bs.length-1].time}` : 'No submissions yet'}
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${prog}%"></div></div>
+    </div>`;
+  }).join('');
+
+  const listEl = document.getElementById('sub-list');
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty">No submissions yet for ${currentRole === 'merchandiser' ? 'your branch today' : 'the last 5 days'}.</div>`;
+    return;
+  }
+  listEl.innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Branch</th><th>Shift</th><th>Merchandiser</th><th>Date</th><th>Time</th>
+      <th>Expired flags</th><th>Remarks</th><th>Detail</th>
+    </tr></thead>
+    <tbody>${[...filtered].reverse().map(s => `
+      <tr class="sub-row" onclick="showDetail('${s.id}')">
+        <td style="font-weight:500">${s.branchShort}</td>
+        <td><span class="sbadge ${s.shift === 'AM' ? 'sam' : 'spm'}">${s.shift}</span></td>
+        <td>${s.name}</td>
+        <td style="color:var(--text2)">${s.date}</td>
+        <td style="color:var(--text2)">${s.time}</td>
+        <td>${s.expiredItems?.length
+          ? `<span style="color:var(--red);font-weight:500">${s.expiredItems.length} item(s)</span>`
+          : `<span style="color:var(--text3)">None</span>`}</td>
+        <td style="color:var(--text2);font-size:12px">${s.remarks || '—'}</td>
+        <td><span style="font-size:11px;color:var(--blue);cursor:pointer">View</span></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function showDetail(id) {
+  const s = submissions.find(x => String(x.id) === String(id)); if (!s) return;
+  document.getElementById('dp-title').textContent =
+    `${s.branchShort} — ${s.shift} shift — ${s.name} — ${s.date}`;
+
+  const pkgRows = s.pkg.filter(r => r.opening||r.received||r.prepared||r.sold||r.expired||r.returned||r.order);
+  const ihRows  = s.ih.filter(r  => r.am||r.pm||r.sold||r.expired||r.sampling);
+  const rmRows  = s.rm.filter(r  => r.opening||r.received||r.used||r.damage||r.order);
+
+  let html = '';
+
+  if (pkgRows.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">Packaged items</div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table>
+    <thead><tr><th>Item</th><th>Code</th><th>UOM</th><th>Opening</th><th>Received</th>
+    <th>Prepared</th><th>Sold</th><th>Expired</th><th>Returned</th><th class="green">Closing</th><th>Order</th></tr></thead>
+    <tbody>${pkgRows.map(r => `<tr>
+      <td class="iname">${r.name}</td><td style="color:var(--text3);font-size:11px">${r.code}</td>
+      <td style="color:var(--text3)">${r.uom}</td>
+      <td>${r.opening||'—'}</td><td>${r.received||'—'}</td><td>${r.prepared||'—'}</td>
+      <td>${r.sold||'—'}</td>
+      <td style="color:${r.expired?'var(--red)':'inherit'}">${r.expired||'—'}</td>
+      <td>${r.returned||'—'}</td>
+      <td style="font-weight:600;background:var(--green-light)">${r.closing}</td>
+      <td>${r.order||'—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  }
+
+  if (ihRows.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">In-house made</div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table>
+    <thead><tr><th>Item</th><th>AM prep</th><th>PM prep</th><th class="green">Total</th>
+    <th>Sold</th><th>Expired</th><th>Sampling</th><th>Cust. return</th><th>Remarks</th></tr></thead>
+    <tbody>${ihRows.map(r => `<tr>
+      <td class="iname">${r.name}</td>
+      <td>${r.am||'—'}</td><td>${r.pm||'—'}</td>
+      <td style="font-weight:600;background:var(--green-light)">${r.total||'—'}</td>
+      <td>${r.sold||'—'}</td>
+      <td style="color:${r.expired?'var(--red)':'inherit'}">${r.expired||'—'}</td>
+      <td>${r.sampling||'—'}</td><td>${r.custReturn||'—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${r.remarks||'—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  }
+
+  if (rmRows.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">Raw materials</div>
+    <div class="tbl-wrap"><table>
+    <thead><tr><th>Item</th><th>Code</th><th>UOM</th><th>Opening</th><th>Received</th>
+    <th>Used</th><th>Damage</th><th class="green">Closing</th><th>Order</th></tr></thead>
+    <tbody>${rmRows.map(r => `<tr>
+      <td class="iname">${r.name}</td>
+      <td style="color:var(--text3);font-size:11px">${r.code}</td>
+      <td style="color:var(--text3)">${r.uom}</td>
+      <td>${r.opening||'—'}</td><td>${r.received||'—'}</td>
+      <td>${r.used||'—'}</td><td>${r.damage||'—'}</td>
+      <td style="font-weight:600;background:var(--green-light)">${r.closing}</td>
+      <td>${r.order||'—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  }
+
+  if (!html) html = `<div style="font-size:13px;color:var(--text2);padding:12px 0">No item data entered for this submission.</div>`;
+
+  if (s.remarks) {
+    html += `<div style="margin-top:14px;font-size:12px;color:var(--text2)"><strong>Remarks:</strong> ${s.remarks}</div>`;
+  }
+
+  document.getElementById('dp-body').innerHTML = html;
+  document.getElementById('detail-panel').style.display = 'block';
+  document.getElementById('detail-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function closeDetail() { document.getElementById('detail-panel').style.display = 'none'; }
+
+function exportExcel() {
+  const filtered = getFiltered();
+  if (!filtered.length) { showToast('No submissions to export — try refreshing the dashboard'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const date = new Date().toISOString().split('T')[0];
+
+  // Only include a row if at least one numeric field has a value > 0
+  function hasData(...vals) {
+    return vals.some(v => v > 0);
+  }
+
+  // Sheet 1 — Packaged Items (submitted rows only)
+  const pkgRows = [['Branch','Date','Code','Item','UOM',
+    'Opening','Received','Prepared','Sold','Expired','Returned','Closing','Order']];
+  filtered.forEach(s => s.pkg.forEach(r => {
+    if (!hasData(r.opening, r.received, r.prepared, r.sold, r.expired, r.returned, r.closing, r.order)) return;
+    pkgRows.push([
+      s.branchName, s.date, r.code, r.name, r.uom,
+      r.opening||0, r.received||0, r.prepared||0, r.sold||0,
+      r.expired||0, r.returned||0, r.closing||0, r.order||0
+    ]);
+  }));
+  if (pkgRows.length > 1) {
+    const ws = XLSX.utils.aoa_to_sheet(pkgRows);
+    ws['!cols'] = [{wch:24},{wch:12},{wch:10},{wch:32},{wch:6},{wch:9},{wch:9},{wch:9},{wch:7},{wch:8},{wch:9},{wch:9},{wch:7}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Packaged Items');
+  }
+
+  // Sheet 2 — In-House Made (submitted rows only)
+  const ihRows = [['Branch','Date','Item','UOM',
+    'AM Prep','PM Prep','Total Prep','Sold','Expired','Sampling','Cust Return','Remarks']];
+  filtered.forEach(s => s.ih.forEach(r => {
+    if (!hasData(r.am, r.pm, r.total, r.sold, r.expired, r.sampling, r.custReturn)) return;
+    ihRows.push([
+      s.branchName, s.date, r.name, r.uom,
+      r.am||0, r.pm||0, r.total||0, r.sold||0,
+      r.expired||0, r.sampling||0, r.custReturn||0, r.remarks||''
+    ]);
+  }));
+  if (ihRows.length > 1) {
+    const ws = XLSX.utils.aoa_to_sheet(ihRows);
+    ws['!cols'] = [{wch:24},{wch:12},{wch:30},{wch:6},{wch:9},{wch:9},{wch:11},{wch:7},{wch:8},{wch:9},{wch:12},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws, 'In-House Made');
+  }
+
+  // Sheet 3 — Raw Materials (submitted rows only)
+  const rmRows = [['Branch','Date','Code','Item','UOM',
+    'Opening','Received','Used','Damage','Closing','Order']];
+  filtered.forEach(s => s.rm.forEach(r => {
+    if (!hasData(r.opening, r.received, r.used, r.damage, r.closing, r.order)) return;
+    rmRows.push([
+      s.branchName, s.date, r.code||'', r.name, r.uom,
+      r.opening||0, r.received||0, r.used||0,
+      r.damage||0, r.closing||0, r.order||0
+    ]);
+  }));
+  if (rmRows.length > 1) {
+    const ws = XLSX.utils.aoa_to_sheet(rmRows);
+    ws['!cols'] = [{wch:24},{wch:12},{wch:10},{wch:22},{wch:7},{wch:9},{wch:9},{wch:7},{wch:8},{wch:9},{wch:7}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Raw Materials');
+  }
+
+  // Sheet 4 — Expired Items only (if any)
+  const expRows = [['Branch','Date','Code','Item','UOM','Expired Qty']];
+  filtered.forEach(s => {
+    s.pkg.filter(r => r.expired > 0).forEach(r =>
+      expRows.push([s.branchName, s.date, r.code, r.name, r.uom, r.expired])
+    );
+    s.ih.filter(r => r.expired > 0).forEach(r =>
+      expRows.push([s.branchName, s.date, '', r.name, r.uom, r.expired])
+    );
+  });
+  if (expRows.length > 1) {
+    const ws = XLSX.utils.aoa_to_sheet(expRows);
+    ws['!cols'] = [{wch:24},{wch:12},{wch:10},{wch:32},{wch:6},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Expired Items');
+  }
+
+  XLSX.writeFile(wb, `HF_Inventory_${date}.xlsx`);
+  showToast('Excel downloaded');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== LOGIN & ROLE LOGIC =====
+let currentRole = null;
+let currentUser = null;
+let currentUserId = null;
+let currentBranch = null;
+
+async function loadMerchandiserOptions() {
+  const sel = document.getElementById('login-name');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading names...</option>';
+  const { data, error } = await db.rpc('list_active_merchandisers');
+  if (error) {
+    console.error(error);
+    sel.innerHTML = '<option value="">Could not load names</option>';
+    return;
+  }
+  const rows = data || [];
+  sel.innerHTML = '<option value="">Select name...</option>' + rows.map(r => `<option value="${r.display_name}">${r.display_name}</option>`).join('');
+}
+
+async function tryLogin(displayName, pin, role) {
+  const { data, error } = await db.rpc('app_login', {
+    p_display_name: displayName,
+    p_pin: pin,
+    p_role: role
+  });
+  if (error) {
+    console.error(error);
+    throw new Error('Login check failed. Please verify Supabase functions and connection.');
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return row;
+}
+
+function selectRole(role) {
+  currentRole = role;
+  document.getElementById('role-merch').classList.toggle('selected', role === 'merchandiser');
+  document.getElementById('role-super').classList.toggle('selected', role === 'supervisor');
+  document.getElementById('role-prod').classList.toggle('selected', role === 'production');
+  document.getElementById('merch-fields').style.display = role === 'merchandiser' ? 'flex' : 'none';
+  document.getElementById('super-fields').style.display = role === 'supervisor' ? 'flex' : 'none';
+  document.getElementById('prod-fields').style.display = role === 'production' ? 'flex' : 'none';
+  document.getElementById('login-err').classList.remove('show');
+  if (role === 'merchandiser') loadMerchandiserOptions();
+}
+
+async function doLogin() {
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
+  if (!currentRole) { alert('Please select a role first.'); return; }
+
+  try {
+    if (currentRole === 'merchandiser') {
+      const name = document.getElementById('login-name').value;
+      const pin  = document.getElementById('login-merch-pin').value.trim();
+      if (!name) { document.getElementById('login-name').focus(); return; }
+      if (!pin)  { document.getElementById('login-merch-pin').focus(); return; }
+      const row = await tryLogin(name, pin, 'merchandiser');
+      if (!row) {
+        errEl.textContent = 'Incorrect PIN or inactive user.';
+        errEl.classList.add('show');
+        document.getElementById('login-merch-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = row.branch || null;
+      await launchApp('merchandiser');
+    } else if (currentRole === 'supervisor') {
+      const pin = document.getElementById('login-pin').value.trim();
+      if (!pin) { document.getElementById('login-pin').focus(); return; }
+      const row = await tryLogin('Marissa', pin, 'supervisor');
+      if (!row) {
+        errEl.textContent = 'Incorrect supervisor PIN.';
+        errEl.classList.add('show');
+        document.getElementById('login-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = null;
+      await launchApp('supervisor');
+    } else {
+      const pin = document.getElementById('login-prod-pin').value.trim();
+      if (!pin) { document.getElementById('login-prod-pin').focus(); return; }
+      const row = await tryLogin('Production Team', pin, 'production');
+      if (!row) {
+        errEl.textContent = 'Incorrect production PIN.';
+        errEl.classList.add('show');
+        document.getElementById('login-prod-pin').value = '';
+        return;
+      }
+      currentUser = row.display_name;
+      currentUserId = row.user_id || null;
+      currentBranch = null;
+      await launchApp('production');
+    }
+  } catch (e) {
+    errEl.textContent = e.message || 'Login failed.';
+    errEl.classList.add('show');
+  }
+}
+
+async function launchApp(role) {
+  currentRole = role;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  const label = role === 'supervisor'
+    ? `Supervisor — ${currentUser || 'Marissa'}`
+    : role === 'production'
+      ? (currentUser || 'Production Team')
+      : `${currentUser} · ${BRANCH_SHORT[currentBranch]}`;
+  document.getElementById('topbar-user-label').textContent = label;
+
+  const nav = document.getElementById('main-nav');
+  const navBtns = document.querySelectorAll('#main-nav .nav-btn');
+  nav.style.display = 'flex';
+
+  navBtns.forEach(btn => {
+    const roleTags = (btn.getAttribute('data-role') || '').split(',').map(s => s.trim()).filter(Boolean);
+    btn.style.display = roleTags.includes(role) ? '' : 'none';
+    btn.classList.remove('active');
+  });
+
+  document.getElementById('view-merch').classList.remove('active');
+  document.getElementById('view-dash').classList.remove('active');
+  document.getElementById('view-prod-orders').classList.remove('active');
+  document.getElementById('view-prod-summary').classList.remove('active');
+
+  if (role === 'supervisor') {
+    navBtns[0].textContent = 'Merchandiser form';
+    navBtns[1].textContent = 'Supervisor dashboard';
+    document.getElementById('mn').removeAttribute('readonly');
+    document.getElementById('br').removeAttribute('disabled');
+    switchView('prod-orders', navBtns[2]);
+  } else if (role === 'merchandiser') {
+    navBtns[0].textContent = 'My form';
+    navBtns[1].textContent = 'My branch dashboard';
+    navBtns[0].classList.add('active');
+    document.getElementById('view-merch').classList.add('active');
+    document.getElementById('mn').value = currentUser;
+    document.getElementById('br').value = currentBranch;
+    document.getElementById('mn').setAttribute('readonly', true);
+    document.getElementById('br').setAttribute('disabled', true);
+    document.getElementById('f-branch').value = currentBranch;
+  } else {
+    navBtns[2].textContent = 'Production orders';
+    navBtns[3].textContent = 'Production dashboard';
+    switchView('prod-summary', navBtns[3]);
+  }
+
+  document.getElementById('curr-date').textContent =
+    new Date().toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+  enforceCurrentDateLock();
+  await loadBranchItems(role === 'merchandiser' ? currentBranch : ((document.getElementById('br') || {}).value || ''));
+  if (role === 'production') {
+    renderProductionSummary();
+  } else if (role === 'supervisor') {
+    renderProductionOrders();
+  } else {
+    renderDash();
+  }
+
+}
+
+function doLogout() {
+  currentRole = null; currentUser = null; currentUserId = null; currentBranch = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('role-merch').classList.remove('selected');
+  document.getElementById('role-super').classList.remove('selected');
+  document.getElementById('role-prod').classList.remove('selected');
+  document.getElementById('merch-fields').style.display = 'none';
+  document.getElementById('super-fields').style.display = 'none';
+  document.getElementById('prod-fields').style.display = 'none';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-merch-pin').value = '';
+  document.getElementById('login-pin').value = '';
+  document.getElementById('login-prod-pin').value = '';
+  document.getElementById('login-err').classList.remove('show');
+  document.getElementById('view-merch').classList.remove('active');
+  document.getElementById('view-dash').classList.remove('active');
+  const vpo = document.getElementById('view-prod-orders'); if (vpo) vpo.classList.remove('active');
+  const vps = document.getElementById('view-prod-summary'); if (vps) vps.classList.remove('active');
+  clearForm();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const shiftEl = document.getElementById('sh');
+  if (shiftEl) {
+    shiftEl.addEventListener('change', () => { updateCarryForwardButtonVisibility(); });
+  }
+  const branchEl = document.getElementById('br');
+  if (branchEl) {
+    branchEl.addEventListener('change', handleBranchChange);
+  }
+  updateCarryForwardButtonVisibility();
+});
+
+async function initApp() {
+  enforceCurrentDateLock();
+  await loadMerchandiserOptions();
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+
+// Allow Enter key on login PIN field
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') doLogin();
+});
+</script>
+
+</body>
+</html>
 
