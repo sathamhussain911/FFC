@@ -147,6 +147,8 @@
   .detail-title { font-size: 14px; font-weight: 600; }
   .close-btn { cursor: pointer; font-size: 20px; color: var(--text2); background: none; border: none; font-family: inherit; line-height: 1; padding: 0 4px; }
   .close-btn:hover { color: var(--text); }
+  .detail-actions { display:flex; gap:8px; align-items:center; }
+  .edit-note { font-size:11px; color: var(--text2); margin-top: 8px; }
 
   /* Sub table */
   .sub-row { cursor: pointer; }
@@ -442,7 +444,10 @@
     <div id="detail-panel" class="detail-panel">
       <div class="detail-hdr">
         <div class="detail-title" id="dp-title">Submission detail</div>
-        <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+        <div class="detail-actions">
+          <button class="btn" id="dp-edit-btn" style="display:none" onclick="startEditSubmission()">Edit submission</button>
+          <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+        </div>
       </div>
       <div id="dp-body"></div>
     </div>
@@ -899,7 +904,7 @@ async function loadCarryForwardStock() {
 
   const { data, error } = await db
     .from('submissions')
-    .select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,created_at')
+.select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,edited_at,edited_by,edit_reason,created_at')
     .eq('branch', branch)
     .eq('sub_date', new Date(new Date(date).getTime() - 86400000).toISOString().split('T')[0])
     .order('created_at', { ascending: false })
@@ -1037,7 +1042,10 @@ function rowToSub(row) {
     expiredItems: JSON.parse(row.expired_items || '[]'),
     pkg: JSON.parse(row.pkg_data || '[]'),
     ih:  JSON.parse(row.ih_data  || '[]'),
-    rm:  JSON.parse(row.rm_data  || '[]')
+    rm:  JSON.parse(row.rm_data  || '[]'),
+    editedAt: row.edited_at || null,
+    editedBy: row.edited_by || null,
+    editReason: row.edit_reason || null
   };
 }
 
@@ -1246,7 +1254,7 @@ async function loadSubmissions() {
 
   let query = db
     .from('submissions')
-    .select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,created_at')
+.select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,edited_at,edited_by,edit_reason,created_at')
     .order('created_at', { ascending: false });
 
   // Supervisor sees rolling last 5 days, merchandiser stays focused on today for handover.
@@ -1369,11 +1377,7 @@ async function renderDash() {
     </tbody></table></div>`;
 }
 
-function showDetail(id) {
-  const s = submissions.find(x => String(x.id) === String(id)); if (!s) return;
-  document.getElementById('dp-title').textContent =
-    `${s.branchShort} — ${s.shift} shift — ${s.name} — ${s.date}`;
-
+function buildSubmissionDisplayHtml(s) {
   const pkgRows = s.pkg.filter(r =>
     r.opening || r.received || r.prepared || r.sold || r.expired || r.returned || r.order || r.closing
   );
@@ -1440,13 +1444,120 @@ function showDetail(id) {
   if (s.remarks) {
     html += `<div style="margin-top:14px;font-size:12px;color:var(--text2)"><strong>Remarks:</strong> ${s.remarks}</div>`;
   }
+  if (s.editedAt || s.editedBy || s.editReason) {
+    html += `<div class="edit-note"><strong>Last correction:</strong> ${s.editedBy || 'Supervisor'}${s.editedAt ? ` on ${s.editedAt}` : ''}${s.editReason ? ` — ${s.editReason}` : ''}</div>`;
+  }
+  return html;
+}
 
-  document.getElementById('dp-body').innerHTML = html;
+function showDetail(id) {
+  const s = submissions.find(x => String(x.id) === String(id)); if (!s) return;
+  currentDetailId = s.id;
+  currentDetailData = JSON.parse(JSON.stringify(s));
+  document.getElementById('dp-title').textContent =
+    `${s.branchShort} — ${s.shift} shift — ${s.name} — ${s.date}`;
+  document.getElementById('dp-body').innerHTML = buildSubmissionDisplayHtml(s);
+  const editBtn = document.getElementById('dp-edit-btn');
+  if (editBtn) editBtn.style.display = currentRole === 'supervisor' ? '' : 'none';
   document.getElementById('detail-panel').style.display = 'block';
   document.getElementById('detail-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
-function closeDetail() { document.getElementById('detail-panel').style.display = 'none'; }
+function buildEditTableRows(rows, type) {
+  if (type === 'pkg') return rows.map((r,i) => `<tr>
+    <td class="iname">${r.name}</td><td style="color:var(--text3);font-size:11px">${r.code||''}</td><td style="color:var(--text3)">${r.uom||''}</td>
+    <td><input class="ni" id="ep_${i}_opening" type="number" value="${Number(r.opening||0)}"></td>
+    <td><input class="ni" id="ep_${i}_received" type="number" value="${Number(r.received||0)}"></td>
+    <td><input class="ni" id="ep_${i}_prepared" type="number" value="${Number(r.prepared||0)}"></td>
+    <td><input class="ni" id="ep_${i}_sold" type="number" value="${Number(r.sold||0)}"></td>
+    <td><input class="ni" id="ep_${i}_expired" type="number" value="${Number(r.expired||0)}"></td>
+    <td><input class="ni" id="ep_${i}_returned" type="number" value="${Number(r.returned||0)}"></td>
+    <td><input class="ni" id="ep_${i}_closing" type="number" value="${Number(r.closing||0)}"></td>
+    <td><input class="ni" id="ep_${i}_order" type="number" value="${Number(r.order||0)}"></td>
+  </tr>`).join('');
+  if (type === 'ih') return rows.map((r,i) => `<tr>
+    <td class="iname">${r.name}</td>
+    <td><input class="ni" id="eih_${i}_am" type="number" value="${Number(r.am||0)}"></td>
+    <td><input class="ni" id="eih_${i}_pm" type="number" value="${Number(r.pm||0)}"></td>
+    <td><input class="ni" id="eih_${i}_total" type="number" value="${Number(r.total||0)}"></td>
+    <td><input class="ni" id="eih_${i}_sold" type="number" value="${Number(r.sold||0)}"></td>
+    <td><input class="ni" id="eih_${i}_expired" type="number" value="${Number(r.expired||0)}"></td>
+    <td><input class="ni" id="eih_${i}_sampling" type="number" value="${Number(r.sampling||0)}"></td>
+    <td><input class="ni" id="eih_${i}_custReturn" type="number" value="${Number(r.custReturn||0)}"></td>
+    <td><input class="ni" style="text-align:left" id="eih_${i}_remarks" type="text" value="${String(r.remarks||'').replace(/"/g,'&quot;')}"></td>
+  </tr>`).join('');
+  return rows.map((r,i) => `<tr>
+    <td class="iname">${r.name}</td><td style="color:var(--text3);font-size:11px">${r.code||''}</td><td style="color:var(--text3)">${r.uom||''}</td>
+    <td><input class="ni" id="erm_${i}_opening" type="number" value="${Number(r.opening||0)}"></td>
+    <td><input class="ni" id="erm_${i}_received" type="number" value="${Number(r.received||0)}"></td>
+    <td><input class="ni" id="erm_${i}_used" type="number" value="${Number(r.used||0)}"></td>
+    <td><input class="ni" id="erm_${i}_damage" type="number" value="${Number(r.damage||0)}"></td>
+    <td><input class="ni" id="erm_${i}_closing" type="number" value="${Number(r.closing||0)}"></td>
+    <td><input class="ni" id="erm_${i}_order" type="number" value="${Number(r.order||0)}"></td>
+  </tr>`).join('');
+}
+
+function startEditSubmission() {
+  if (currentRole !== 'supervisor' || !currentDetailData) return;
+  const s = currentDetailData;
+  const body = document.getElementById('dp-body');
+  body.innerHTML = `
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">Packaged items</div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table>
+      <thead><tr><th>Item</th><th>Code</th><th>UOM</th><th>Opening</th><th>Received</th><th>Prepared</th><th>Sold</th><th>Expired</th><th>Returned</th><th class="green">Closing</th><th>Order</th></tr></thead>
+      <tbody>${buildEditTableRows(s.pkg || [], 'pkg')}</tbody>
+    </table></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">In-house made</div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table>
+      <thead><tr><th>Item</th><th>AM prep</th><th>PM prep</th><th class="green">Total</th><th>Sold</th><th>Expired</th><th>Sampling</th><th>Cust. return</th><th>Remarks</th></tr></thead>
+      <tbody>${buildEditTableRows(s.ih || [], 'ih')}</tbody>
+    </table></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px">Raw materials</div>
+    <div class="tbl-wrap" style="margin-bottom:16px"><table>
+      <thead><tr><th>Item</th><th>Code</th><th>UOM</th><th>Opening</th><th>Received</th><th>Used</th><th>Damage</th><th class="green">Closing</th><th>Order</th></tr></thead>
+      <tbody>${buildEditTableRows(s.rm || [], 'rm')}</tbody>
+    </table></div>
+    <div class="fg" style="margin-bottom:10px"><label>Remarks</label><textarea id="edit-general-remarks" rows="2">${s.remarks || ''}</textarea></div>
+    <div class="fg" style="margin-bottom:10px"><label>Correction reason</label><textarea id="edit-reason" rows="2" placeholder="Why are you correcting this submission?" required></textarea></div>
+    <div class="btn-row"><button class="btn" type="button" onclick="showDetail('${s.id}')">Cancel</button><button class="btn btn-green" type="button" onclick="saveEditedSubmission()">Save correction</button></div>
+  `;
+}
+
+function numInputVal(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
+
+function collectEditedRows() {
+  const s = currentDetailData;
+  const pkg = (s.pkg || []).map((r,i) => ({...r, opening:numInputVal(`ep_${i}_opening`), received:numInputVal(`ep_${i}_received`), prepared:numInputVal(`ep_${i}_prepared`), sold:numInputVal(`ep_${i}_sold`), expired:numInputVal(`ep_${i}_expired`), returned:numInputVal(`ep_${i}_returned`), closing:numInputVal(`ep_${i}_closing`), order:numInputVal(`ep_${i}_order`)}));
+  const ih = (s.ih || []).map((r,i) => ({...r, am:numInputVal(`eih_${i}_am`), pm:numInputVal(`eih_${i}_pm`), total:numInputVal(`eih_${i}_total`), sold:numInputVal(`eih_${i}_sold`), expired:numInputVal(`eih_${i}_expired`), sampling:numInputVal(`eih_${i}_sampling`), custReturn:numInputVal(`eih_${i}_custReturn`), remarks:(document.getElementById(`eih_${i}_remarks`)||{}).value || ''}));
+  const rm = (s.rm || []).map((r,i) => ({...r, opening:numInputVal(`erm_${i}_opening`), received:numInputVal(`erm_${i}_received`), used:numInputVal(`erm_${i}_used`), damage:numInputVal(`erm_${i}_damage`), closing:numInputVal(`erm_${i}_closing`), order:numInputVal(`erm_${i}_order`)}));
+  return { pkg, ih, rm };
+}
+
+async function saveEditedSubmission() {
+  if (!currentDetailData) return;
+  const reason = ((document.getElementById('edit-reason')||{}).value || '').trim();
+  if (!reason) { showToast('Correction reason is required'); return; }
+  const rows = collectEditedRows();
+  const payload = {
+    submission_id: currentDetailData.id,
+    actor_name: currentUser || 'Marissa',
+    actor_role: currentRole || 'supervisor',
+    edit_reason: reason,
+    remarks: (document.getElementById('edit-general-remarks')||{}).value || '',
+    pkg_data: rows.pkg,
+    ih_data: rows.ih,
+    rm_data: rows.rm
+  };
+  const { data, error } = await db.rpc('update_submission_with_audit', { p_payload: payload });
+  if (error) { console.error(error); showToast(error.message || 'Could not save correction'); return; }
+  showToast('Submission corrected and saved');
+  await loadSubmissions();
+  const updated = submissions.find(x => String(x.id) === String(currentDetailData.id));
+  if (updated) showDetail(updated.id);
+  renderDash();
+}
+
+function closeDetail() { currentDetailId = null; currentDetailData = null; document.getElementById('detail-panel').style.display = 'none'; }
 
 function exportExcel() {
   const filtered = getFiltered();
@@ -1542,6 +1653,8 @@ let currentRole = null;
 let currentUser = null;
 let currentUserId = null;
 let currentBranch = null;
+let currentDetailId = null;
+let currentDetailData = null;
 
 async function loadMerchandiserOptions() {
   const sel = document.getElementById('login-name');
