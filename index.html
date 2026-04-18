@@ -573,28 +573,39 @@ async function loadBranchItems(branch) {
     PKG = [];
     IH = [];
     RM = [];
-    buildPkg();
-    buildIh();
-    buildRm();
+    resetBuiltTabs();
+    ensureTabBuilt(currentTabName());
     return;
   }
 
-  const { data, error } = await db.rpc('list_branch_items', { p_branch: branch });
-  if (error) {
-    console.error('Item load error:', error);
-    showToast('Could not load branch items. Check Supabase item setup.');
-    return;
+  const cacheKey = `branchItems:${branch}`;
+  let rows = branchItemCache[branch] || null;
+  if (!rows) {
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) rows = JSON.parse(cached);
+    } catch (e) { console.warn('Branch cache read failed', e); }
   }
 
-  const rows = (data || []).map(normalizeItemRow);
-  console.log('Loaded branch items for', branch, rows);
+  if (!rows) {
+    const { data, error } = await db.rpc('list_branch_items', { p_branch: branch });
+    if (error) {
+      console.error('Item load error:', error);
+      showToast('Could not load branch items. Check Supabase item setup.');
+      return;
+    }
+    rows = (data || []).map(normalizeItemRow);
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(rows)); } catch (e) {}
+  }
+
+  branchItemCache[branch] = rows;
+  console.log('Loaded branch items for', branch, rows.length);
   PKG = sortBranchItems(rows.filter(r => r.item_type === 'packaged'));
   IH  = sortBranchItems(rows.filter(r => r.item_type === 'inhouse'));
   RM  = sortBranchItems(rows.filter(r => r.item_type === 'raw_material'));
 
-  buildPkg();
-  buildIh();
-  buildRm();
+  resetBuiltTabs();
+  ensureTabBuilt(currentTabName());
   if (rows.length === 0) showToast('No items mapped for this branch.');
 }
 
@@ -613,6 +624,25 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let submissions = [];  // local cache, loaded from Supabase on dashboard open
 let productionOrders = [];
+let branchItemCache = {};
+let builtTabs = { pkg:false, ih:false, rm:false };
+
+function currentTabName() {
+  const active = document.querySelector('.tab.active');
+  if (!active) return 'pkg';
+  const txt = (active.textContent || '').toLowerCase();
+  if (txt.includes('in-house')) return 'ih';
+  if (txt.includes('raw')) return 'rm';
+  return 'pkg';
+}
+
+function resetBuiltTabs() { builtTabs = { pkg:false, ih:false, rm:false }; }
+
+function ensureTabBuilt(tabName) {
+  if (tabName === 'pkg' && !builtTabs.pkg) { buildPkg(); builtTabs.pkg = true; }
+  if (tabName === 'ih' && !builtTabs.ih) { buildIh(); builtTabs.ih = true; }
+  if (tabName === 'rm' && !builtTabs.rm) { buildRm(); builtTabs.rm = true; }
+}
 
 function ni(id) { return `<input type="number" class="ni" id="${id}" min="0" placeholder="-">`; }
 function gv(id) { return parseFloat((document.getElementById(id)||{}).value) || 0; }
@@ -697,6 +727,7 @@ function switchTab(t, el) {
   ['pkg','ih','rm'].forEach(x => document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none');
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
+  ensureTabBuilt(t);
 }
 
 
@@ -925,7 +956,7 @@ async function loadCarryForwardStock() {
 
   const { data, error } = await db
     .from('submissions')
-    .select('*')
+    .select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,created_at')
     .eq('branch', branch)
     .eq('sub_date', new Date(new Date(date).getTime() - 86400000).toISOString().split('T')[0])
     .order('created_at', { ascending: false })
@@ -957,6 +988,27 @@ async function loadCarryForwardStock() {
   updateSyncBanner(`Opening stock auto-loaded from the last ${rows.length} submission(s) of ${mergedSource.branchShort} on ${mergedSource.date}. For each packaged item and raw material, the latest previous-day closing greater than 0 was used. Items without previous closing stay at 0.`);
 }
 
+
+function hasMeaningfulValue(v) {
+  if (v === null || v === undefined || v === '') return false;
+  const n = Number(v);
+  return Number.isFinite(n) ? n !== 0 : String(v).trim() !== '';
+}
+
+function rowHasData(row, keys) {
+  return keys.some(k => hasMeaningfulValue(row[k]));
+}
+
+function compactPkgRows(rows) {
+  return rows.filter(r => rowHasData(r, ['opening','received','prepared','sold','expired','returned','closing','order']));
+}
+function compactIhRows(rows) {
+  return rows.filter(r => rowHasData(r, ['am','pm','total','sold','expired','sampling','custReturn','remarks']));
+}
+function compactRmRows(rows) {
+  return rows.filter(r => rowHasData(r, ['opening','received','used','damage','closing','order']));
+}
+
 async function submitForm() {
   const branch = document.getElementById('br').value;
   const shift  = document.getElementById('sh').value;
@@ -967,9 +1019,9 @@ async function submitForm() {
   submitBtn.textContent = 'Saving...';
   submitBtn.disabled = true;
 
-  const pkgRows = collectPkg();
-  const ihRows = collectIh();
-  const rmRows = collectRm();
+  const pkgRows = compactPkgRows(collectPkg());
+  const ihRows = compactIhRows(collectIh());
+  const rmRows = compactRmRows(collectRm());
   const expFlags = pkgRows.filter(r => Number(r.expired) > 0).map(r => ({name: r.name, qty: r.expired}));
   const now = new Date();
   const subDate = currentRole === 'merchandiser' ? now.toISOString().split('T')[0] : (document.getElementById('fd').value || now.toISOString().split('T')[0]);
@@ -1115,7 +1167,7 @@ function rowToProduction(row) {
 async function loadProductionOrders() {
   let query = db
     .from('production_orders')
-    .select('*')
+    .select('id,submission_id,order_date,branch,branch_name,branch_short,shift,item_type,item_code,item_name,uom,qty,submitted_by,submission_time,supervisor_status,production_status,supervisor_remarks,production_remarks,created_at')
     .order('created_at', { ascending: false });
 
   if (currentRole !== 'supervisor') {
@@ -1251,7 +1303,7 @@ async function loadSubmissions() {
 
   let query = db
     .from('submissions')
-    .select('*')
+    .select('id,branch,branch_name,branch_short,shift,merchandiser,sub_date,sub_time,remarks,expired_items,pkg_data,ih_data,rm_data,created_at')
     .order('created_at', { ascending: false });
 
   // Supervisor sees rolling last 5 days, merchandiser stays focused on today for handover.
@@ -1386,9 +1438,15 @@ function showDetail(id) {
   document.getElementById('dp-title').textContent =
     `${s.branchShort} — ${s.shift} shift — ${s.name} — ${s.date}`;
 
-  const pkgRows = s.pkg.filter(r => r.opening||r.received||r.prepared||r.sold||r.expired||r.returned||r.order);
-  const ihRows  = s.ih.filter(r  => r.am||r.pm||r.sold||r.expired||r.sampling);
-  const rmRows  = s.rm.filter(r  => r.opening||r.received||r.used||r.damage||r.order);
+  const pkgRows = s.pkg.filter(r =>
+    r.opening || r.received || r.prepared || r.sold || r.expired || r.returned || r.order || r.closing
+  );
+  const ihRows  = s.ih.filter(r  =>
+    r.am || r.pm || r.total || r.sold || r.expired || r.sampling || r.custReturn || (r.remarks && String(r.remarks).trim())
+  );
+  const rmRows  = s.rm.filter(r  =>
+    r.opening || r.received || r.used || r.damage || r.order || r.closing
+  );
 
   let html = '';
 
@@ -1759,4 +1817,3 @@ document.addEventListener('keydown', function(e) {
 
 </body>
 </html>
-
