@@ -167,7 +167,7 @@
   .login-icon svg { width: 22px; height: 22px; fill: #fff; }
   .login-title { font-size: 16px; font-weight: 600; }
   .login-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  .role-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 24px; }
   .role-card { border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.15s; background: var(--bg); }
   .role-card:hover { border-color: var(--green); background: var(--green-light); }
   .role-card.selected { border-color: var(--green); background: var(--green-light); }
@@ -225,14 +225,7 @@
         <div class="role-lbl">Supervisor</div>
         <div class="role-desc">View dashboard & reports</div>
       </div>
-      <div class="role-card" id="role-prod" onclick="selectRole('production')">
-        <div class="role-icon">
-          <svg viewBox="0 0 24 24"><path d="M19 7h-1V6a4 4 0 0 0-8 0v1H9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-7-1a2 2 0 1 1 4 0v1h-4V6zm2 11-4-4h2v-3h4v3h2l-4 4z"/></svg>
-        </div>
-        <div class="role-lbl">Production</div>
-        <div class="role-desc">View queue & update status</div>
-      </div>
-    </div>
+          </div>
 
     <div class="login-fields" id="merch-fields" style="display:none">
       <div class="fg">
@@ -251,13 +244,6 @@
       <div class="fg">
         <label>Supervisor PIN</label>
         <input type="password" id="login-pin" placeholder="Enter PIN" maxlength="6">
-      </div>
-    </div>
-
-    <div class="login-fields" id="prod-fields" style="display:none">
-      <div class="fg">
-        <label>Production PIN</label>
-        <input type="password" id="login-prod-pin" placeholder="Enter PIN" maxlength="6">
       </div>
     </div>
 
@@ -291,8 +277,6 @@
   <div class="nav" id="main-nav" style="display:none">
     <button class="nav-btn active" data-role="merchandiser,supervisor" onclick="switchView('merch',this)">Merchandiser form</button>
     <button class="nav-btn" data-role="merchandiser,supervisor" onclick="switchView('dash',this)">Supervisor dashboard</button>
-    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-orders',this)">Production orders</button>
-    <button class="nav-btn" data-role="supervisor,production" onclick="switchView('prod-summary',this)">Production summary</button>
   </div>
 
   <!-- ===== MERCHANDISER VIEW ===== -->
@@ -464,47 +448,6 @@
     </div>
 
     <div id="sub-list"></div>
-  </div>
-
-  <!-- ===== PRODUCTION ORDERS ===== -->
-  <div id="view-prod-orders" class="view">
-    <div class="sec-hdr" style="margin-top:0">Production order review</div>
-    <div class="filter-row">
-      <label>Filter:</label>
-      <select id="po-status" onchange="renderProductionOrders()">
-        <option value="">All statuses</option>
-        <option value="Pending">Pending</option>
-        <option value="Approved">Approved</option>
-        <option value="Sent to Production">Sent to Production</option>
-        <option value="Rejected">Rejected</option>
-      </select>
-      <select id="po-branch" onchange="renderProductionOrders()">
-        <option value="">All branches</option>
-        <option value="festival">Festival City</option>
-        <option value="dfc">Dubai Festival</option>
-        <option value="moe">Mall of Emirates</option>
-        <option value="deira">Deira City</option>
-        <option value="marina">Marina Mall</option>
-        <option value="vegetable_souk">Vegetable Souk</option>
-      </select>
-      <button class="btn" onclick="renderProductionOrders()">Refresh</button>
-    </div>
-    <div id="prod-orders-list"></div>
-  </div>
-
-  <!-- ===== PRODUCTION SUMMARY ===== -->
-  <div id="view-prod-summary" class="view">
-    <div class="sec-hdr" style="margin-top:0">Consolidated production summary</div>
-    <div class="filter-row">
-      <label>Summary:</label>
-      <select id="ps-scope" onchange="renderProductionSummary()">
-        <option value="all">All except rejected</option>
-        <option value="active">Approved + sent</option>
-        <option value="completed">Completed only</option>
-      </select>
-      <button class="btn" onclick="renderProductionSummary()">Refresh</button>
-    </div>
-    <div id="prod-summary-list"></div>
   </div>
 
 </div><!-- end .app -->
@@ -1378,14 +1321,7 @@ async function renderDash() {
     if (exportBtn) exportBtn.style.display = '';
   }
 
-  const expSubs = scopeSubs.filter(s => s.expiredItems?.length > 0);
-  document.getElementById('alert-section').innerHTML = expSubs.length > 0
-    ? `<div class="sec-hdr" style="margin-top:0">${currentRole === 'merchandiser' ? 'My branch alerts' : 'Alerts'}</div>` +
-      expSubs.map(s => s.expiredItems.map(e => `
-        <div class="alert-box">
-          <div class="alert-icon">!</div>
-          <div class="alert-txt"><strong>${s.branchShort} (${s.shift})</strong> — ${e.name}: ${e.qty} expired unit(s) — reported by ${s.name}</div>
-        </div>`).join('')).join('') : '';
+  document.getElementById('alert-section').innerHTML = '';
 
   const branchEntries = currentRole === 'merchandiser'
     ? [[currentBranch, BRANCH_SHORT[currentBranch]]]
@@ -1640,10 +1576,8 @@ function selectRole(role) {
   currentRole = role;
   document.getElementById('role-merch').classList.toggle('selected', role === 'merchandiser');
   document.getElementById('role-super').classList.toggle('selected', role === 'supervisor');
-  document.getElementById('role-prod').classList.toggle('selected', role === 'production');
   document.getElementById('merch-fields').style.display = role === 'merchandiser' ? 'flex' : 'none';
   document.getElementById('super-fields').style.display = role === 'supervisor' ? 'flex' : 'none';
-  document.getElementById('prod-fields').style.display = role === 'production' ? 'flex' : 'none';
   document.getElementById('login-err').classList.remove('show');
   if (role === 'merchandiser') loadMerchandiserOptions();
 }
@@ -1685,19 +1619,9 @@ async function doLogin() {
       currentBranch = null;
       await launchApp('supervisor');
     } else {
-      const pin = document.getElementById('login-prod-pin').value.trim();
-      if (!pin) { document.getElementById('login-prod-pin').focus(); return; }
-      const row = await tryLogin('Production Team', pin, 'production');
-      if (!row) {
-        errEl.textContent = 'Incorrect production PIN.';
-        errEl.classList.add('show');
-        document.getElementById('login-prod-pin').value = '';
-        return;
-      }
-      currentUser = row.display_name;
-      currentUserId = row.user_id || null;
-      currentBranch = null;
-      await launchApp('production');
+      errEl.textContent = 'Invalid role selection.';
+      errEl.classList.add('show');
+      return;
     }
   } catch (e) {
     errEl.textContent = e.message || 'Login failed.';
@@ -1729,8 +1653,6 @@ async function launchApp(role) {
 
   document.getElementById('view-merch').classList.remove('active');
   document.getElementById('view-dash').classList.remove('active');
-  document.getElementById('view-prod-orders').classList.remove('active');
-  document.getElementById('view-prod-summary').classList.remove('active');
 
   if (role === 'supervisor') {
     navBtns[0].textContent = 'Merchandiser form';
@@ -1748,20 +1670,14 @@ async function launchApp(role) {
     document.getElementById('mn').setAttribute('readonly', true);
     document.getElementById('br').setAttribute('disabled', true);
     document.getElementById('f-branch').value = currentBranch;
-  } else {
-    navBtns[2].textContent = 'Production orders';
-    navBtns[3].textContent = 'Production dashboard';
-    switchView('prod-summary', navBtns[3]);
   }
 
   document.getElementById('curr-date').textContent =
     new Date().toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
   enforceCurrentDateLock();
   await loadBranchItems(role === 'merchandiser' ? currentBranch : ((document.getElementById('br') || {}).value || ''));
-  if (role === 'production') {
-    renderProductionSummary();
-  } else if (role === 'supervisor') {
-    renderProductionOrders();
+  if (role === 'supervisor') {
+    renderDash();
   } else {
     renderDash();
   }
@@ -1774,19 +1690,14 @@ function doLogout() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('role-merch').classList.remove('selected');
   document.getElementById('role-super').classList.remove('selected');
-  document.getElementById('role-prod').classList.remove('selected');
   document.getElementById('merch-fields').style.display = 'none';
   document.getElementById('super-fields').style.display = 'none';
-  document.getElementById('prod-fields').style.display = 'none';
   document.getElementById('login-name').value = '';
   document.getElementById('login-merch-pin').value = '';
   document.getElementById('login-pin').value = '';
-  document.getElementById('login-prod-pin').value = '';
   document.getElementById('login-err').classList.remove('show');
   document.getElementById('view-merch').classList.remove('active');
   document.getElementById('view-dash').classList.remove('active');
-  const vpo = document.getElementById('view-prod-orders'); if (vpo) vpo.classList.remove('active');
-  const vps = document.getElementById('view-prod-summary'); if (vps) vps.classList.remove('active');
   clearForm();
 }
 
