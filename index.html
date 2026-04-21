@@ -304,7 +304,6 @@
           <option value="deira">Carrefour Deira City</option>
           <option value="marina">Carrefour Marina Mall</option>
           <option value="vegetable_souk">Vegetable Souk</option>
-          <option value="mirdif">HF Carrefour Mirdif</option>
         </select>
       </div>
       <div class="fg">
@@ -433,7 +432,6 @@
         <option value="deira">Deira City</option>
         <option value="marina">Marina Mall</option>
         <option value="vegetable_souk">Vegetable Souk</option>
-        <option value="mirdif">Mirdif</option>
       </select>
       <select id="f-shift" onchange="renderDash()">
         <option value="">All shifts</option>
@@ -469,8 +467,7 @@ const BRANCHES = {
   moe: 'Carrefour Mall of Emirates',
   deira: 'Carrefour Deira City',
   marina: 'Carrefour Marina Mall',
-  vegetable_souk: 'Vegetable Souk',
-  mirdif: 'HF Carrefour Mirdif'
+  vegetable_souk: 'Vegetable Souk'
 };
 const BRANCH_SHORT = {
   festival:'Festival City',
@@ -478,8 +475,7 @@ const BRANCH_SHORT = {
   moe:'Mall of Emirates',
   deira:'Deira City',
   marina:'Marina Mall',
-  vegetable_souk:'Vegetable Souk',
-  mirdif:'Mirdif'
+  vegetable_souk:'Vegetable Souk'
 };
 
 let PKG = [];
@@ -839,11 +835,6 @@ function findCarryMatch(lookup, item, rows, idx) {
     if (loose) prev = loose;
   }
 
-  if (!prev && rows[idx]) {
-    const fallbackClose = closingValue(rows[idx]);
-    if (fallbackClose > 0) prev = rows[idx];
-  }
-
   return prev;
 }
 
@@ -912,7 +903,7 @@ async function loadCarryForwardStock() {
     .eq('branch', branch)
     .eq('sub_date', new Date(new Date(date).getTime() - 86400000).toISOString().split('T')[0])
     .order('created_at', { ascending: false })
-    .limit(3);
+    .limit(1);
 
   if (error) {
     console.error('Carry-forward load error:', error);
@@ -927,17 +918,10 @@ async function loadCarryForwardStock() {
     return;
   }
 
-  const mergedSource = {
-    branchShort: rows[0].branchShort,
-    date: rows[0].date,
-    time: rows[0].time,
-    shift: rows[0].shift,
-    pkg: chooseLatestNonZeroRows(rows, 'pkg'),
-    rm: chooseLatestNonZeroRows(rows, 'rm')
-  };
+  const source = rows[0];
 
-  fillOpeningFromSubmission(mergedSource);
-  updateSyncBanner(`Opening stock auto-loaded from the last ${rows.length} submission(s) of ${mergedSource.branchShort} on ${mergedSource.date}. For each packaged item and raw material, the latest previous-day closing greater than 0 was used. Items without previous closing stay at 0.`);
+  fillOpeningFromSubmission(source);
+  updateSyncBanner(`Opening stock loaded from the last submission of ${source.branchShort} on ${source.date} at ${source.time}. Items without previous closing stay at 0.`);
 }
 
 
