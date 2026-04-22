@@ -774,22 +774,8 @@ function normalizeCarryCode(v) {
   return digitsOnly || compact.toLowerCase();
 }
 
-function normalizeCarryName(v) {
-  return String(v ?? '')
-    .trim()
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function rowCode(row) {
   return row?.code ?? row?.item_code ?? row?.c ?? '';
-}
-
-function rowName(row) {
-  return row?.name ?? row?.item_name ?? row?.n ?? '';
 }
 
 function closingValue(row) {
@@ -800,42 +786,22 @@ function closingValue(row) {
 
 function buildCarryLookup(rows) {
   const byCode = new Map();
-  const byName = new Map();
 
-  (rows || []).forEach((row, idx) => {
+  (rows || []).forEach((row) => {
     const close = closingValue(row);
     if (close <= 0) return;
 
-    const normalized = { ...row, __close: close, __idx: idx };
     const codeKey = normalizeCarryCode(rowCode(row));
-    const nameKey = normalizeCarryName(rowName(row));
-
-    if (codeKey && !byCode.has(codeKey)) byCode.set(codeKey, normalized);
-    if (nameKey && !byName.has(nameKey)) byName.set(nameKey, normalized);
+    if (codeKey && !byCode.has(codeKey)) byCode.set(codeKey, row);
   });
 
-  return { byCode, byName };
+  return { byCode };
 }
 
-function findCarryMatch(lookup, item, rows, idx) {
+function findCarryMatch(lookup, item) {
   const codeKey = normalizeCarryCode(item.c || item.code || item.item_code);
-  const nameKey = normalizeCarryName(item.n || item.name || item.item_name);
-
-  let prev = (codeKey && lookup.byCode.get(codeKey))
-    || (nameKey && lookup.byName.get(nameKey))
-    || null;
-
-  if (!prev && nameKey) {
-    const loose = (rows || []).find(r => {
-      const close = closingValue(r);
-      if (close <= 0) return false;
-      const rn = normalizeCarryName(rowName(r));
-      return rn && (rn.includes(nameKey) || nameKey.includes(rn));
-    });
-    if (loose) prev = loose;
-  }
-
-  return prev;
+  if (!codeKey) return null;
+  return lookup.byCode.get(codeKey) || null;
 }
 
 function applyCarryForward(items, prefix, sourceRows) {
@@ -843,7 +809,7 @@ function applyCarryForward(items, prefix, sourceRows) {
   const lookup = buildCarryLookup(rows);
 
   items.forEach((it, i) => {
-    const prev = findCarryMatch(lookup, it, rows, i);
+    const prev = findCarryMatch(lookup, it);
     const op = document.getElementById(`${prefix}${i}_op`);
     if (!op) return;
     const close = prev ? closingValue(prev) : 0;
