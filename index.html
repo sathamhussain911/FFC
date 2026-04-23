@@ -412,7 +412,7 @@
   <div id="view-dash" class="view">
     <div class="stat-grid">
       <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
-      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 6 branches</div></div>
+      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 7 branches</div></div>
       <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
       <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
     </div>
@@ -486,6 +486,25 @@ let PKG = [];
 let IH = [];
 let RM = [];
 
+const TYPE_ORDER = {
+  packaged: ['PLATTERS', 'CHUNKS', 'SLICES', 'BREAKFAST', 'INFUSED W.', 'PREMIUM FRUIT', 'JUICE'],
+  inhouse: ['JUICE Inhouse', 'Fruit salad Inhouse', 'Veg salad Inhouse', 'Combo Inhouse', 'BREAKFAST'],
+  raw_material: ['SALAD BAR', 'CONSUMABLES', 'PACKAGING', 'F&V']
+};
+
+function getSectionTypeOrder(item) {
+  const section = String(item.item_type || item.type || '').trim();
+  return TYPE_ORDER[section] || [];
+}
+
+function getTypeRank(item) {
+  const label = groupLabel(item);
+  const order = getSectionTypeOrder(item);
+  const idx = order.indexOf(label);
+  return idx === -1 ? 999 : idx;
+}
+
+
 function normalizeItemRow(row) {
   const resolvedType = row.item_type || row.type || '';
   return {
@@ -506,6 +525,8 @@ function groupLabel(item) {
 
 function sortBranchItems(rows) {
   return [...rows].sort((a, b) => {
+    const typeRankCmp = getTypeRank(a) - getTypeRank(b);
+    if (typeRankCmp !== 0) return typeRankCmp;
     const groupCmp = groupLabel(a).localeCompare(groupLabel(b));
     if (groupCmp !== 0) return groupCmp;
     const orderCmp = (Number(a.display_order || 0) - Number(b.display_order || 0));
@@ -1730,7 +1751,7 @@ async function launchApp(role) {
     navBtns[1].textContent = 'Supervisor dashboard';
     document.getElementById('mn').removeAttribute('readonly');
     document.getElementById('br').removeAttribute('disabled');
-    switchView('prod-orders', navBtns[2]);
+    switchView('dash', navBtns[1]);
   } else if (role === 'merchandiser') {
     navBtns[0].textContent = 'My form';
     navBtns[1].textContent = 'My branch dashboard';
