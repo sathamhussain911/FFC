@@ -304,6 +304,7 @@
           <option value="deira">Carrefour Deira City</option>
           <option value="marina">Carrefour Marina Mall</option>
           <option value="vegetable_souk">Vegetable Souk</option>
+          <option value="mirdif">HF Carrefour Mirdif</option>
         </select>
       </div>
       <div class="fg">
@@ -432,6 +433,7 @@
         <option value="deira">Deira City</option>
         <option value="marina">Marina Mall</option>
         <option value="vegetable_souk">Vegetable Souk</option>
+        <option value="mirdif">Mirdif</option>
       </select>
       <select id="f-shift" onchange="renderDash()">
         <option value="">All shifts</option>
@@ -467,7 +469,8 @@ const BRANCHES = {
   moe: 'Carrefour Mall of Emirates',
   deira: 'Carrefour Deira City',
   marina: 'Carrefour Marina Mall',
-  vegetable_souk: 'Vegetable Souk'
+  vegetable_souk: 'Vegetable Souk',
+  mirdif: 'HF Carrefour Mirdif'
 };
 const BRANCH_SHORT = {
   festival:'Festival City',
@@ -475,7 +478,8 @@ const BRANCH_SHORT = {
   moe:'Mall of Emirates',
   deira:'Deira City',
   marina:'Marina Mall',
-  vegetable_souk:'Vegetable Souk'
+  vegetable_souk:'Vegetable Souk',
+  mirdif:'Mirdif'
 };
 
 let PKG = [];
@@ -497,7 +501,7 @@ function normalizeItemRow(row) {
 }
 
 function groupLabel(item) {
-  return String(item.type || item.category || 'Other').trim() || 'Other';
+  return String(item.category || item.type || 'Other').trim() || 'Other';
 }
 
 function sortBranchItems(rows) {
