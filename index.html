@@ -35,7 +35,7 @@
     --radius-lg: 12px;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg3); min-height: 100vh; }
-  .app { max-width: 1100px; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
+  .app { width: 70%; max-width: none; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
 
   /* Topbar */
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg); }
@@ -188,6 +188,139 @@
   .logout-btn { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; font-family: inherit; }
   .logout-btn:hover { color: var(--red); border-color: var(--red); }
 
+
+  /* Enhanced Marissa dashboard */
+  .kpi-grid { display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+  .kpi-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; }
+  .kpi-label { font-size:11px; color:var(--text2); margin-bottom:4px; font-weight:500; }
+  .kpi-value { font-size:24px; font-weight:700; color:var(--text); }
+  .kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+  .dash-layout { display:grid; grid-template-columns: 320px 1fr; gap:16px; align-items:start; }
+  .dash-panel { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; }
+  .dash-panel-title { font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
+  .issue-list { display:flex; flex-direction:column; gap:8px; }
+  .issue-item { border:0.5px solid var(--border); border-radius: var(--radius); padding:10px 12px; background: var(--bg2); }
+  .issue-item.issue-high { background: var(--red-light); border-color: var(--red-border); }
+  .issue-item.issue-med { background: var(--amber-bg); border-color: #efcf94; }
+  .issue-item.issue-low { background: #eef6ff; border-color: #b9d6ff; }
+  .issue-title { font-size:12px; font-weight:600; color:var(--text); }
+  .issue-sub { font-size:11px; color:var(--text2); margin-top:4px; line-height:1.4; }
+  .branch-card-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; margin-bottom:16px; }
+  .branch-card-ops { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
+  .branch-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px; }
+  .branch-card-name { font-size:13px; font-weight:700; color:var(--text); }
+  .branch-meta { font-size:11px; color:var(--text2); }
+  .branch-status-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
+  .status-box { border:0.5px solid var(--border); border-radius: var(--radius); padding:8px; background:var(--bg2); }
+  .status-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:.05em; }
+  .status-value { font-size:12px; font-weight:700; margin-top:4px; }
+  .status-ok { color: var(--green-mid); }
+  .status-bad { color: var(--red); }
+  .status-wait { color: var(--text2); }
+
+  .pill-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .mini-pill { display:inline-flex; align-items:center; gap:4px; border:0.5px solid var(--border); border-radius:20px; padding:2px 8px; font-size:11px; color:var(--text2); background:var(--bg); }
+  .submissions-panel { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
+  .table-toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .toolbar-left, .toolbar-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .toolbar-chip { border:0.5px solid var(--border); border-radius:20px; background:var(--bg2); padding:5px 10px; font-size:11px; color:var(--text2); }
+
+
+  .branch-detail-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px; margin-bottom:16px; }
+  .branch-detail-card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; cursor:pointer; transition:all .15s; }
+  .branch-detail-card:hover { border-color: var(--green); box-shadow: 0 0 0 2px rgba(61,122,24,0.08); }
+  .branch-detail-title { font-size:13px; font-weight:700; color:var(--text); }
+  .branch-detail-meta { font-size:11px; color:var(--text2); margin-top:4px; line-height:1.5; }
+  .branch-detail-drawer { display:none; background:var(--bg); border:0.5px solid var(--border2); border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; }
+  .drawer-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+  .drawer-title { font-size:15px; font-weight:700; }
+  .compare-grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+  .compare-box { background:var(--bg2); border:0.5px solid var(--border); border-radius:var(--radius); padding:12px; }
+  .compare-box h4 { font-size:12px; margin-bottom:8px; color:var(--text2); text-transform:uppercase; letter-spacing:.05em; }
+  .section-toggle-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .section-toggle-btn { padding:6px 12px; border:0.5px solid var(--border2); border-radius:20px; background:var(--bg2); cursor:pointer; font-size:12px; }
+  .section-toggle-btn.active { background:var(--green-light); border-color:var(--green); color:var(--green-mid); font-weight:600; }
+
+
+  /* Marissa daily submission summary */
+  .daily-summary-wrap { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; margin-bottom:16px; }
+  .daily-summary-head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .daily-summary-title { font-size:13px; font-weight:700; color:var(--text); }
+  .daily-summary-sub { font-size:11px; color:var(--text2); margin-top:3px; }
+  .daily-btn-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .daily-btn { border:0.5px solid var(--border2); background:var(--bg2); border-radius:20px; padding:7px 12px; font-size:12px; cursor:pointer; color:var(--text); }
+  .daily-btn:hover { background:var(--green-light); border-color:var(--green-border); }
+  .daily-btn.active { background:var(--green); border-color:var(--green); color:#fff; font-weight:600; }
+  .daily-detail { display:none; border:0.5px solid var(--border); border-radius:var(--radius); padding:12px; background:var(--bg); margin-top:12px; }
+  .daily-detail.show { display:block; }
+  .daily-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:8px; margin-bottom:12px; }
+  .daily-kpi { background:var(--bg2); border:0.5px solid var(--border); border-radius:var(--radius); padding:10px; }
+  .daily-kpi-lbl { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+  .daily-kpi-val { font-size:20px; font-weight:700; margin-top:4px; color:var(--text); }
+  .daily-section-title { font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.05em; margin:14px 0 8px; }
+  .daily-mini-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .daily-mini-table th { background:var(--bg2); color:var(--text2); font-size:11px; text-align:left; padding:8px; border-bottom:0.5px solid var(--border); }
+  .daily-mini-table td { padding:7px 8px; border-bottom:0.5px solid var(--border); }
+  .daily-warning { background:var(--amber-bg); border:0.5px solid #efcf94; color:var(--amber-text); border-radius:var(--radius); padding:10px 12px; font-size:12px; margin-bottom:10px; }
+
+
+  /* Enterprise deep dashboard additions */
+  .enterprise-control-wrap { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; margin-bottom:16px; }
+  .enterprise-toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .enterprise-toolbar-left, .enterprise-toolbar-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .enterprise-toolbar select, .enterprise-toolbar input { border:0.5px solid var(--border2); border-radius:var(--radius); padding:7px 10px; font-size:12px; background:var(--bg); }
+  .enterprise-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:14px; }
+  .enterprise-card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
+  .enterprise-card-title { font-size:12px; color:var(--text2); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+  .enterprise-card-value { font-size:24px; font-weight:700; color:var(--text); }
+  .enterprise-card-sub { font-size:11px; color:var(--text2); margin-top:4px; line-height:1.45; }
+  .enterprise-split { display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-bottom:14px; }
+  .enterprise-detail-panel { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
+  .enterprise-table-wrap { overflow-x:auto; border:0.5px solid var(--border); border-radius:var(--radius); background:var(--bg); }
+  .enterprise-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .enterprise-table th { background:var(--bg2); color:var(--text2); text-align:left; font-size:11px; padding:8px; border-bottom:0.5px solid var(--border); white-space:nowrap; }
+  .enterprise-table td { padding:7px 8px; border-bottom:0.5px solid var(--border); vertical-align:middle; }
+  .enterprise-table tr:hover td { background:var(--bg2); }
+  .risk-high { color:var(--red); font-weight:700; }
+  .risk-med { color:var(--amber-text); font-weight:700; }
+  .risk-ok { color:var(--green-mid); font-weight:700; }
+  .small-note { font-size:11px; color:var(--text2); line-height:1.45; }
+  .score-pill { display:inline-block; min-width:44px; text-align:center; border-radius:20px; padding:3px 8px; font-size:11px; font-weight:700; }
+  .score-good { background:var(--green-light); color:var(--green-mid); }
+  .score-warn { background:var(--amber-bg); color:var(--amber-text); }
+  .score-bad { background:var(--red-light); color:var(--red); }
+  .variance-pos { color:var(--green-mid); font-weight:700; }
+  .variance-neg { color:var(--red); font-weight:700; }
+  .variance-zero { color:var(--text2); }
+  .enterprise-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .enterprise-tab { border:0.5px solid var(--border2); background:var(--bg2); border-radius:20px; padding:7px 12px; font-size:12px; cursor:pointer; }
+  .enterprise-tab.active { background:var(--green); color:#fff; border-color:var(--green); font-weight:600; }
+  @media (max-width: 1000px) { .enterprise-split { grid-template-columns:1fr; } }
+
+
+  /* 70% centered layout override */
+  body { background: var(--bg3); }
+  #main-app { width: 100%; }
+  .app { width: 70% !important; max-width: none !important; margin: 0 auto !important; box-shadow: 0 0 0 0.5px var(--border) !important; }
+  .view { width: 100%; }
+  .enterprise-control-wrap,
+  .daily-summary-wrap,
+  .submissions-panel,
+  .dash-panel,
+  .branch-detail-drawer {
+    width: 100%;
+  }
+  .enterprise-split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr);
+  }
+  .tbl-wrap,
+  .enterprise-table-wrap {
+    width: 100%;
+  }
+  @media (max-width: 1200px) {
+    .app { width: 95% !important; }
+  }
+
   /* Responsive */
   @media (max-width: 600px) {
     .stat-grid { grid-template-columns: 1fr 1fr; }
@@ -196,6 +329,309 @@
     .view { padding: 12px; }
     .nav { padding: 8px 12px; }
   }
+
+  /* FFC colorful dashboard theme */
+  :root {
+    --ffc-green: #3D7A18;
+    --ffc-green-2: #5BA829;
+    --ffc-lime: #A7D948;
+    --ffc-yellow: #F4C430;
+    --ffc-orange: #EF9F27;
+    --ffc-red: #D94B3D;
+    --ffc-blue: #1E88E5;
+    --ffc-purple: #7E57C2;
+    --ffc-teal: #00A88E;
+    --ffc-soft-green: #EAF7DF;
+    --ffc-soft-yellow: #FFF6D8;
+    --ffc-soft-orange: #FFF0DE;
+    --ffc-soft-blue: #EAF4FF;
+    --ffc-soft-red: #FFF0EE;
+    --ffc-soft-purple: #F2ECFF;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(91,168,41,.20), transparent 28%),
+      radial-gradient(circle at top right, rgba(244,196,48,.20), transparent 28%),
+      linear-gradient(135deg, #eef5e8 0%, #f7f9f2 48%, #fff8e5 100%) !important;
+  }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--ffc-green) 0%, var(--ffc-green-2) 56%, var(--ffc-yellow) 130%) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 16px 40px rgba(61,122,24,.22) !important;
+  }
+
+  .topbar-title,
+  .topbar-sub,
+  .topbar-date,
+  .topbar-user,
+  .user-pill {
+    color: #fff !important;
+  }
+
+  .user-pill {
+    background: rgba(255,255,255,.18) !important;
+    border-color: rgba(255,255,255,.35) !important;
+  }
+
+  .logout-btn {
+    background: rgba(255,255,255,.15) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,.35) !important;
+  }
+
+  .nav {
+    background: linear-gradient(90deg, rgba(61,122,24,.10), rgba(244,196,48,.14), rgba(239,159,39,.08)) !important;
+  }
+
+  .nav-btn.active {
+    background: var(--ffc-green) !important;
+    color: #fff !important;
+    border-color: var(--ffc-green) !important;
+    box-shadow: 0 8px 18px rgba(61,122,24,.22);
+  }
+
+  .sec-hdr {
+    color: var(--ffc-green) !important;
+    border-bottom: 2px solid rgba(91,168,41,.25) !important;
+  }
+
+  .kpi-card,
+  .daily-kpi,
+  .enterprise-card,
+  .branch-card-ops,
+  .branch-detail-card,
+  .dash-panel,
+  .submissions-panel,
+  .enterprise-detail-panel,
+  .daily-summary-wrap,
+  .enterprise-control-wrap {
+    border: 1px solid rgba(61,122,24,.16) !important;
+    box-shadow: 0 12px 28px rgba(61,122,24,.08) !important;
+  }
+
+  .kpi-card:nth-child(1),
+  .enterprise-card:nth-child(1) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-green) 100%) !important;
+    border-top: 4px solid var(--ffc-green) !important;
+  }
+
+  .kpi-card:nth-child(2),
+  .enterprise-card:nth-child(2) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-blue) 100%) !important;
+    border-top: 4px solid var(--ffc-blue) !important;
+  }
+
+  .kpi-card:nth-child(3),
+  .enterprise-card:nth-child(3) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-red) 100%) !important;
+    border-top: 4px solid var(--ffc-red) !important;
+  }
+
+  .kpi-card:nth-child(4),
+  .enterprise-card:nth-child(4) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-yellow) 100%) !important;
+    border-top: 4px solid var(--ffc-yellow) !important;
+  }
+
+  .kpi-card:nth-child(5),
+  .enterprise-card:nth-child(5) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-orange) 100%) !important;
+    border-top: 4px solid var(--ffc-orange) !important;
+  }
+
+  .kpi-card:nth-child(6),
+  .enterprise-card:nth-child(6) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-purple) 100%) !important;
+    border-top: 4px solid var(--ffc-purple) !important;
+  }
+
+  .kpi-value,
+  .daily-kpi-val,
+  .enterprise-card-value {
+    text-shadow: 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  .branch-card-ops:nth-child(6n+1),
+  .branch-detail-card:nth-child(6n+1) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-green) 100%) !important;
+  }
+
+  .branch-card-ops:nth-child(6n+2),
+  .branch-detail-card:nth-child(6n+2) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-yellow) 100%) !important;
+  }
+
+  .branch-card-ops:nth-child(6n+3),
+  .branch-detail-card:nth-child(6n+3) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-blue) 100%) !important;
+  }
+
+  .branch-card-ops:nth-child(6n+4),
+  .branch-detail-card:nth-child(6n+4) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-orange) 100%) !important;
+  }
+
+  .branch-card-ops:nth-child(6n+5),
+  .branch-detail-card:nth-child(6n+5) {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-purple) 100%) !important;
+  }
+
+  .branch-card-ops:nth-child(6n+6),
+  .branch-detail-card:nth-child(6n+6) {
+    background: linear-gradient(135deg, #ffffff 0%, #E7FFF9 100%) !important;
+  }
+
+  .status-box {
+    background: rgba(255,255,255,.72) !important;
+    border-color: rgba(61,122,24,.18) !important;
+  }
+
+  .mini-pill,
+  .toolbar-chip,
+  .pill {
+    background: rgba(255,255,255,.78) !important;
+    border-color: rgba(61,122,24,.22) !important;
+  }
+
+  .btn-green,
+  .btn.primary,
+  .daily-btn.active,
+  .enterprise-tab.active {
+    background: linear-gradient(135deg, var(--ffc-green) 0%, var(--ffc-green-2) 100%) !important;
+    border-color: var(--ffc-green) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(61,122,24,.22);
+  }
+
+  .btn-excel {
+    background: linear-gradient(135deg, #1D6F42 0%, var(--ffc-green-2) 100%) !important;
+    border-color: #1D6F42 !important;
+    box-shadow: 0 8px 18px rgba(29,111,66,.20);
+  }
+
+  .daily-btn,
+  .enterprise-tab,
+  .section-toggle-btn {
+    background: #fff !important;
+    border-color: rgba(61,122,24,.22) !important;
+  }
+
+  .daily-btn:hover,
+  .enterprise-tab:hover,
+  .section-toggle-btn:hover {
+    background: var(--ffc-soft-green) !important;
+    border-color: var(--ffc-green-2) !important;
+  }
+
+  .issue-item.issue-high,
+  .issue.high {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-red) 100%) !important;
+    border-left: 5px solid var(--ffc-red) !important;
+  }
+
+  .issue-item.issue-med,
+  .issue.med {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-yellow) 100%) !important;
+    border-left: 5px solid var(--ffc-orange) !important;
+  }
+
+  .issue-item.issue-low,
+  .issue.low {
+    background: linear-gradient(135deg, #ffffff 0%, var(--ffc-soft-blue) 100%) !important;
+    border-left: 5px solid var(--ffc-blue) !important;
+  }
+
+  thead th,
+  .enterprise-table th,
+  .daily-mini-table th {
+    background: linear-gradient(135deg, var(--ffc-green) 0%, var(--ffc-green-2) 100%) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,.18) !important;
+  }
+
+  tbody tr:nth-child(even) td {
+    background: rgba(234,247,223,.28);
+  }
+
+  tbody tr:hover td {
+    background: rgba(244,196,48,.16) !important;
+  }
+
+  .score-good,
+  .sbadge.sam {
+    background: var(--ffc-soft-green) !important;
+    color: var(--ffc-green) !important;
+  }
+
+  .score-warn,
+  .sbadge.spm {
+    background: var(--ffc-soft-yellow) !important;
+    color: #7a4a09 !important;
+  }
+
+  .score-bad {
+    background: var(--ffc-soft-red) !important;
+    color: var(--ffc-red) !important;
+  }
+
+  .detail-panel,
+  .branch-detail-drawer,
+  .daily-detail {
+    background: linear-gradient(135deg, #ffffff 0%, #fbfff7 100%) !important;
+    border-color: rgba(61,122,24,.22) !important;
+    box-shadow: 0 14px 32px rgba(61,122,24,.10) !important;
+  }
+
+  select:focus,
+  input[type=text]:focus,
+  input[type=date]:focus,
+  input[type=password]:focus,
+  textarea:focus {
+    border-color: var(--ffc-green-2) !important;
+    box-shadow: 0 0 0 3px rgba(91,168,41,.16) !important;
+  }
+
+  .login-screen {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(91,168,41,.22), transparent 28%),
+      radial-gradient(circle at 80% 10%, rgba(244,196,48,.22), transparent 28%),
+      linear-gradient(135deg, #eff8e8 0%, #fff9e8 100%) !important;
+  }
+
+  .login-card {
+    box-shadow: 0 18px 45px rgba(61,122,24,.14) !important;
+    border-color: rgba(61,122,24,.20) !important;
+  }
+
+  .role-card.selected {
+    background: linear-gradient(135deg, var(--ffc-soft-green) 0%, #fff 100%) !important;
+    border-color: var(--ffc-green-2) !important;
+  }
+
+
+  /* CEO Enterprise Dashboard */
+  .ceo-hero{background:linear-gradient(135deg,var(--green) 0%,#5BA829 58%,#F4C430 135%);color:#fff;border-radius:var(--radius-lg);padding:22px;margin-bottom:16px;box-shadow:0 18px 44px rgba(61,122,24,.22)}
+  .ceo-hero h2{font-size:22px;margin-bottom:6px}.ceo-hero p{font-size:13px;opacity:.92;line-height:1.45}
+  .ceo-topline{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:16px 0}
+  .ceo-kpi{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:14px}
+  .ceo-kpi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.85;font-weight:700}.ceo-kpi-val{font-size:26px;font-weight:800;margin-top:5px}
+  .ceo-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-bottom:14px}
+  .ceo-panel{background:var(--bg);border:1px solid rgba(61,122,24,.16);border-radius:var(--radius-lg);padding:16px;box-shadow:0 12px 28px rgba(61,122,24,.08)}
+  .ceo-panel-title{font-size:12px;color:var(--green-mid);font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+  .ceo-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:14px}
+  .ceo-branch-card{background:linear-gradient(135deg,#fff 0%,#f4fbec 100%);border:1px solid rgba(61,122,24,.18);border-radius:14px;padding:14px}
+  .ceo-branch-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:10px}.ceo-branch-name{font-size:14px;font-weight:800}.ceo-branch-sub{font-size:11px;color:var(--text2);margin-top:3px}
+  .ceo-score{min-width:54px;text-align:center;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}.ceo-score.good{background:var(--green-light);color:var(--green-mid)}.ceo-score.warn{background:var(--amber-bg);color:var(--amber-text)}.ceo-score.bad{background:var(--red-light);color:var(--red)}
+  .ceo-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.ceo-metric{background:rgba(255,255,255,.72);border:1px solid var(--border);border-radius:10px;padding:8px}.ceo-metric small{display:block;color:var(--text2);font-size:10px;margin-bottom:3px}.ceo-metric strong{font-size:14px}
+  .ceo-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}.ceo-table{width:100%;border-collapse:collapse;font-size:12px}.ceo-table th{background:linear-gradient(135deg,var(--green) 0%,var(--green-mid) 100%);color:#fff;text-align:left;padding:9px;font-size:11px;white-space:nowrap}.ceo-table td{padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:middle}.ceo-table tr:hover td{background:rgba(244,196,48,.14)}
+  .ceo-risk-high{color:var(--red);font-weight:800}.ceo-risk-med{color:var(--amber-text);font-weight:800}.ceo-risk-ok{color:var(--green-mid);font-weight:800}
+  .ceo-chart{display:flex;align-items:flex-end;gap:8px;height:170px;padding:14px 6px 4px;border-bottom:1px solid var(--border)}.ceo-bar{flex:1;min-width:28px;background:linear-gradient(180deg,#5BA829,var(--green));border-radius:8px 8px 0 0;position:relative}.ceo-bar span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);font-weight:700}.ceo-bar-labels{display:flex;gap:8px;font-size:10px;color:var(--text2);padding-top:6px}.ceo-bar-labels div{flex:1;text-align:center}
+  .ceo-action-list{display:flex;flex-direction:column;gap:8px}.ceo-action{border-radius:12px;border:1px solid var(--border);padding:10px 12px;background:#fff}.ceo-action.high{background:var(--red-light);border-color:var(--red-border)}.ceo-action.med{background:var(--amber-bg);border-color:#efcf94}.ceo-action h4{font-size:13px;margin-bottom:4px}.ceo-action p{font-size:11px;color:var(--text2);line-height:1.45}
+  @media(max-width:1100px){.ceo-topline{grid-template-columns:repeat(2,1fr)}.ceo-grid{grid-template-columns:1fr}.ceo-metrics{grid-template-columns:repeat(2,1fr)}}
+
 </style>
 </head>
 <body>
@@ -279,6 +715,7 @@
   <div class="nav" id="main-nav" style="display:none">
     <button class="nav-btn active" data-role="merchandiser,supervisor" onclick="switchView('merch',this)">Merchandiser form</button>
     <button class="nav-btn" data-role="merchandiser,supervisor" onclick="switchView('dash',this)">Supervisor dashboard</button>
+    <button class="nav-btn" data-role="supervisor" onclick="switchView('ceo',this)">CEO dashboard</button>
   </div>
 
   <!-- ===== MERCHANDISER VIEW ===== -->
@@ -410,51 +847,234 @@
 
   <!-- ===== SUPERVISOR DASHBOARD ===== -->
   <div id="view-dash" class="view">
-    <div class="stat-grid">
-      <div class="sc"><div class="sc-lbl">Submissions today</div><div class="sc-val" id="ds-sub">0</div><div class="sc-sub">of 12 expected</div></div>
-      <div class="sc"><div class="sc-lbl">Branches reported</div><div class="sc-val" id="ds-br">0</div><div class="sc-sub">of 7 branches</div></div>
-      <div class="sc"><div class="sc-lbl">Expired flags</div><div class="sc-val" style="color:var(--red)" id="ds-ex">0</div><div class="sc-sub">across all branches</div></div>
-      <div class="sc"><div class="sc-lbl">Pending</div><div class="sc-val" id="ds-pend">10</div><div class="sc-sub">submissions needed</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Today submissions</div><div class="kpi-value" id="ds-sub">0</div><div class="kpi-sub">live operational count</div></div>
+      <div class="kpi-card"><div class="kpi-label">Branches completed</div><div class="kpi-value" id="ds-br">0</div><div class="kpi-sub">AM + PM completed</div></div>
+      <div class="kpi-card"><div class="kpi-label">Expired alerts</div><div class="kpi-value" style="color:var(--red)" id="ds-ex">0</div><div class="kpi-sub">items flagged today</div></div>
+      <div class="kpi-card"><div class="kpi-label">Missing submissions</div><div class="kpi-value" id="ds-pend">0</div><div class="kpi-sub">still expected today</div></div>
+      <div class="kpi-card"><div class="kpi-label">Edited submissions</div><div class="kpi-value" id="ds-edit">0</div><div class="kpi-sub">supervisor corrections today</div></div>
+      <div class="kpi-card"><div class="kpi-label">Late submissions</div><div class="kpi-value" id="ds-late">0</div><div class="kpi-sub">after cut-off</div></div>
     </div>
 
-    <div id="alert-section"></div>
+    <div class="sec-hdr">Branch control board</div>
+    <div class="branch-card-grid" id="br-grid"></div>
 
-    <div class="sec-hdr">Branch status</div>
-    <div class="branch-grid" id="br-grid"></div>
-
-    <div class="sec-hdr">Submissions</div>
-    <div class="filter-row">
-      <label>Filter:</label>
-      <select id="f-branch" onchange="renderDash()">
-        <option value="">All branches</option>
-        <option value="festival">Festival City</option>
-        <option value="dfc">Dubai Festival</option>
-        <option value="moe">Mall of Emirates</option>
-        <option value="deira">Deira City</option>
-        <option value="marina">Marina Mall</option>
-        <option value="vegetable_souk">Vegetable Souk</option>
-        <option value="mirdif">Mirdif</option>
-      </select>
-      <select id="f-shift" onchange="renderDash()">
-        <option value="">All shifts</option>
-        <option value="AM">AM shift</option>
-        <option value="PM">PM shift</option>
-      </select>
-      <button class="btn btn-excel" id="export-btn" onclick="exportExcel()">&#11015; Download Excel</button>
-    </div>
-
-    <div id="detail-panel" class="detail-panel">
-      <div class="detail-hdr">
-        <div class="detail-title" id="dp-title">Submission detail</div>
-        <div class="detail-actions">
-          <button class="btn" id="dp-edit-btn" style="display:none" onclick="startEditSubmission()">Edit submission</button>
-          <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+    <div class="sec-hdr">Branch explorer</div>
+    <div id="branch-detail-drawer" class="branch-detail-drawer">
+      <div class="drawer-head">
+        <div class="drawer-title" id="branch-drawer-title">Branch detail</div>
+        <button class="close-btn" onclick="closeBranchDrawer()">&#x2715;</button>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-box">
+          <h4>Yesterday final submission</h4>
+          <div id="branch-yesterday-summary"></div>
+        </div>
+        <div class="compare-box">
+          <h4>Today live submission</h4>
+          <div id="branch-today-summary"></div>
         </div>
       </div>
-      <div id="dp-body"></div>
+      <div class="section-toggle-row">
+        <button class="section-toggle-btn active" onclick="showBranchSection('pkg', this)">Packaged</button>
+        <button class="section-toggle-btn" onclick="showBranchSection('ih', this)">In-house</button>
+        <button class="section-toggle-btn" onclick="showBranchSection('rm', this)">Raw materials</button>
+      </div>
+      <div id="branch-detail-body"></div>
+    </div>
+    <div class="branch-detail-grid" id="branch-detail-grid"></div>
+
+    <div class="sec-hdr">Daily submission summary</div>
+    <div class="daily-summary-wrap" id="daily-summary-wrap">
+      <div class="daily-summary-head">
+        <div>
+          <div class="daily-summary-title">Submission Day View</div>
+          <div class="daily-summary-sub">Click a day to see all branch submissions, opening/closing/order/expired summary, and issue count.</div>
+        </div>
+        <button class="btn btn-excel" onclick="exportExcel()">&#11015; Export filtered data</button>
+      </div>
+      <div class="daily-btn-row" id="daily-button-row"></div>
+      <div class="daily-detail" id="daily-detail-panel">
+        <div id="daily-detail-body"></div>
+      </div>
     </div>
 
-    <div id="sub-list"></div>
+
+
+    <div class="sec-hdr">Enterprise inventory control center</div>
+    <div class="enterprise-control-wrap" id="enterprise-control-wrap">
+      <div class="enterprise-toolbar">
+        <div class="enterprise-toolbar-left">
+          <label style="font-size:12px;color:var(--text2)">Enterprise view:</label>
+          <select id="ent-branch" onchange="renderEnterpriseDashboard()">
+            <option value="">All branches</option>
+            <option value="festival">Festival City</option>
+            <option value="dfc">Dubai Festival</option>
+            <option value="moe">Mall of Emirates</option>
+            <option value="deira">Deira City</option>
+            <option value="marina">Marina Mall</option>
+            <option value="vegetable_souk">Vegetable Souk</option>
+            <option value="mirdif">Mirdif</option>
+          </select>
+          <select id="ent-section" onchange="renderEnterpriseDashboard()">
+            <option value="">All sections</option>
+            <option value="pkg">Packaged</option>
+            <option value="ih">In-house</option>
+            <option value="rm">Raw materials</option>
+          </select>
+          <select id="ent-mode" onchange="renderEnterpriseDashboard()">
+            <option value="">All item movements</option>
+            <option value="exceptions">Exceptions only</option>
+            <option value="orders">Orders only</option>
+            <option value="expired">Expired/Damage only</option>
+            <option value="variance">Opening mismatch only</option>
+            <option value="closing">Closing stock only</option>
+          </select>
+          <input type="text" id="ent-search" onkeyup="renderEnterpriseDashboard()" placeholder="Search item/code/branch..." />
+        </div>
+        <div class="enterprise-toolbar-right">
+          <button class="btn" onclick="renderEnterpriseDashboard()">Refresh enterprise view</button>
+          <button class="btn btn-excel" onclick="exportExcel()">Export Excel</button>
+        </div>
+      </div>
+
+      <div class="enterprise-grid">
+        <div class="enterprise-card"><div class="enterprise-card-title">Inventory rows reviewed</div><div class="enterprise-card-value" id="ent-rows">0</div><div class="enterprise-card-sub">meaningful item rows across selected scope</div></div>
+        <div class="enterprise-card"><div class="enterprise-card-title">Opening vs closing mismatch</div><div class="enterprise-card-value" id="ent-mismatch" style="color:var(--red)">0</div><div class="enterprise-card-sub">today opening not matching yesterday closing by item code</div></div>
+        <div class="enterprise-card"><div class="enterprise-card-title">Order quantity</div><div class="enterprise-card-value" id="ent-order" style="color:var(--amber-text)">0</div><div class="enterprise-card-sub">total requested quantity from selected scope</div></div>
+        <div class="enterprise-card"><div class="enterprise-card-title">Expired / damage</div><div class="enterprise-card-value" id="ent-expired" style="color:var(--red)">0</div><div class="enterprise-card-sub">expired packaged/in-house + damaged raw material</div></div>
+        <div class="enterprise-card"><div class="enterprise-card-title">Closing stock</div><div class="enterprise-card-value" id="ent-closing">0</div><div class="enterprise-card-sub">current submitted closing stock total</div></div>
+        <div class="enterprise-card"><div class="enterprise-card-title">Control score</div><div class="enterprise-card-value" id="ent-score">0%</div><div class="enterprise-card-sub">based on missing, mismatch, expired, and edits</div></div>
+      </div>
+
+      <div class="enterprise-split">
+        <div class="enterprise-detail-panel">
+          <div class="enterprise-card-title">Branch performance matrix</div>
+          <div class="enterprise-table-wrap">
+            <table class="enterprise-table">
+              <thead><tr><th>Branch</th><th>AM</th><th>PM</th><th>Rows</th><th>Orders</th><th>Expired/Damage</th><th>Mismatches</th><th>Edited</th><th>Score</th></tr></thead>
+              <tbody id="ent-branch-matrix"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="enterprise-detail-panel">
+          <div class="enterprise-card-title">Top risk items</div>
+          <div class="small-note" style="margin-bottom:8px">Highest attention items based on expired, damage, mismatch, and order quantity.</div>
+          <div class="enterprise-table-wrap">
+            <table class="enterprise-table">
+              <thead><tr><th>Risk</th><th>Branch</th><th>Item</th><th>Code</th><th>Reason</th></tr></thead>
+              <tbody id="ent-risk-items"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="enterprise-detail-panel">
+        <div class="enterprise-card-title">Item movement ledger</div>
+        <div class="enterprise-tabs">
+          <button class="enterprise-tab active" onclick="setEnterpriseMode('', this)">All</button>
+          <button class="enterprise-tab" onclick="setEnterpriseMode('variance', this)">Opening mismatches</button>
+          <button class="enterprise-tab" onclick="setEnterpriseMode('orders', this)">Orders</button>
+          <button class="enterprise-tab" onclick="setEnterpriseMode('expired', this)">Expired / Damage</button>
+          <button class="enterprise-tab" onclick="setEnterpriseMode('closing', this)">Closing stock</button>
+        </div>
+        <div class="enterprise-table-wrap">
+          <table class="enterprise-table">
+            <thead>
+              <tr>
+                <th>Branch</th><th>Shift</th><th>Section</th><th>Code</th><th>Item</th><th>UOM</th>
+                <th>Yesterday Closing</th><th>Today Opening</th><th>Received/Prep</th><th>Sold/Used</th>
+                <th>Today Closing</th><th>Order</th><th>Expired/Damage</th><th>Variance</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ent-item-ledger"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-hdr">Operations monitor</div>
+    <div class="dash-layout">
+      <div class="dash-panel">
+        <div class="dash-panel-title">Issue panel</div>
+        <div id="issue-list" class="issue-list"></div>
+      </div>
+
+      <div class="submissions-panel">
+        <div class="table-toolbar">
+          <div class="toolbar-left">
+            <label style="font-size:12px;color:var(--text2)">Filter:</label>
+            <select id="f-branch" onchange="renderDash()">
+              <option value="">All branches</option>
+              <option value="festival">Festival City</option>
+              <option value="dfc">Dubai Festival</option>
+              <option value="moe">Mall of Emirates</option>
+              <option value="deira">Deira City</option>
+              <option value="marina">Marina Mall</option>
+              <option value="vegetable_souk">Vegetable Souk</option>
+              <option value="mirdif">Mirdif</option>
+            </select>
+            <select id="f-shift" onchange="renderDash()">
+              <option value="">All shifts</option>
+              <option value="AM">AM shift</option>
+              <option value="PM">PM shift</option>
+            </select>
+            <select id="f-mode" onchange="renderDash()">
+              <option value="">All records</option>
+              <option value="issues">Only issues</option>
+              <option value="edited">Only edited</option>
+              <option value="expired">Only expired</option>
+              <option value="late">Only late</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <div class="toolbar-chip" id="dash-summary-chip">0 records</div>
+            <button class="btn btn-excel" id="export-btn" onclick="exportExcel()">&#11015; Download Excel</button>
+          </div>
+        </div>
+
+        <div id="detail-panel" class="detail-panel">
+          <div class="detail-hdr">
+            <div class="detail-title" id="dp-title">Submission detail</div>
+            <div class="detail-actions">
+              <button class="btn" id="dp-edit-btn" style="display:none" onclick="startEditSubmission()">Edit submission</button>
+              <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+            </div>
+          </div>
+          <div id="dp-body"></div>
+        </div>
+
+        <div id="sub-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== CEO DASHBOARD ===== -->
+  <div id="view-ceo" class="view">
+    <div class="ceo-hero">
+      <h2>CEO Executive Inventory Dashboard</h2>
+      <p>Enterprise-level view of branch compliance, submission discipline, inventory exceptions, expired/damage exposure, order demand, and stock-control risk.</p>
+      <div class="ceo-topline">
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Operational score</div><div class="ceo-kpi-val" id="ceo-score">0%</div></div>
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Today submissions</div><div class="ceo-kpi-val" id="ceo-submissions">0</div></div>
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Missing AM/PM</div><div class="ceo-kpi-val" id="ceo-missing">0</div></div>
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Expired/Damage</div><div class="ceo-kpi-val" id="ceo-expired">0</div></div>
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Orders demand</div><div class="ceo-kpi-val" id="ceo-orders">0</div></div>
+        <div class="ceo-kpi"><div class="ceo-kpi-lbl">Corrections</div><div class="ceo-kpi-val" id="ceo-edits">0</div></div>
+      </div>
+    </div>
+    <div class="ceo-board" id="ceo-branch-board"></div>
+    <div class="ceo-grid">
+      <div class="ceo-panel"><div class="ceo-panel-title">Submission trend — last 5 days</div><div class="ceo-chart" id="ceo-trend-chart"></div><div class="ceo-bar-labels" id="ceo-trend-labels"></div></div>
+      <div class="ceo-panel"><div class="ceo-panel-title">CEO action list</div><div class="ceo-action-list" id="ceo-action-list"></div></div>
+    </div>
+    <div class="ceo-grid">
+      <div class="ceo-panel"><div class="ceo-panel-title">Branch executive matrix</div><div class="ceo-table-wrap"><table class="ceo-table"><thead><tr><th>Branch</th><th>AM</th><th>PM</th><th>Submissions</th><th>Orders</th><th>Expired/Damage</th><th>Corrections</th><th>Risk</th><th>Score</th></tr></thead><tbody id="ceo-branch-matrix"></tbody></table></div></div>
+      <div class="ceo-panel"><div class="ceo-panel-title">Top stock-control risks</div><div class="ceo-table-wrap"><table class="ceo-table"><thead><tr><th>Risk</th><th>Branch</th><th>Item</th><th>Code</th><th>Reason</th></tr></thead><tbody id="ceo-risk-table"></tbody></table></div></div>
+    </div>
+    <div class="ceo-panel"><div class="ceo-panel-title">Executive summary by item movement</div><div class="ceo-table-wrap"><table class="ceo-table"><thead><tr><th>Branch</th><th>Shift</th><th>Section</th><th>Code</th><th>Item</th><th>Opening</th><th>Received/Prep</th><th>Sold/Used</th><th>Closing</th><th>Order</th><th>Expired/Damage</th><th>Status</th></tr></thead><tbody id="ceo-item-summary"></tbody></table></div></div>
   </div>
 
 </div><!-- end .app -->
@@ -686,12 +1306,53 @@ function buildRm() {
 }
 
 
+
+function ceoNum(v){const n=Number(v||0);return Number.isFinite(n)?n:0;}
+function ceoToday(){return new Date().toISOString().split('T')[0];}
+function ceoRowsFromSubmission(s){
+  const rows=[];
+  (s.pkg||[]).forEach(r=>rows.push({branch:s.branch,branchShort:s.branchShort,shift:s.shift,section:'Packaged',code:r.code||'',item:r.name||'',opening:ceoNum(r.opening),received:ceoNum(r.received)+ceoNum(r.prepared),soldUsed:ceoNum(r.sold),closing:ceoNum(r.closing),order:ceoNum(r.order),expiredDamage:ceoNum(r.expired)}));
+  (s.ih||[]).forEach(r=>rows.push({branch:s.branch,branchShort:s.branchShort,shift:s.shift,section:'In-house',code:r.code||'',item:r.name||'',opening:0,received:ceoNum(r.total)||(ceoNum(r.am)+ceoNum(r.pm)),soldUsed:ceoNum(r.sold),closing:0,order:0,expiredDamage:ceoNum(r.expired)}));
+  (s.rm||[]).forEach(r=>rows.push({branch:s.branch,branchShort:s.branchShort,shift:s.shift,section:'Raw material',code:r.code||'',item:r.name||'',opening:ceoNum(r.opening),received:ceoNum(r.received),soldUsed:ceoNum(r.used),closing:ceoNum(r.closing),order:ceoNum(r.order),expiredDamage:ceoNum(r.damage)}));
+  return rows.filter(r=>r.opening||r.received||r.soldUsed||r.closing||r.order||r.expiredDamage);
+}
+function ceoBranchScore(rows,am,pm,edits){let s=100;if(!am)s-=18;if(!pm)s-=18;s-=rows.filter(r=>r.expiredDamage>0).length*5;s-=rows.filter(r=>r.order>0).length*2;s-=edits*4;return Math.max(0,Math.min(100,s));}
+function ceoScoreClass(s){return s>=85?'good':s>=65?'warn':'bad';}
+function ceoRiskLabel(s){return s>=85?'<span class="ceo-risk-ok">Low</span>':s>=65?'<span class="ceo-risk-med">Medium</span>':'<span class="ceo-risk-high">High</span>';}
+async function renderCeoDash(){
+  await loadSubmissions();
+  const today=ceoToday(), todaySubs=(submissions||[]).filter(s=>s.date===today), allRows=todaySubs.flatMap(ceoRowsFromSubmission);
+  const startedShiftSlots=countStartedShiftSlots();
+  const expected=Object.keys(BRANCH_SHORT).length*startedShiftSlots;
+  const expiredTotal=allRows.reduce((a,r)=>a+r.expiredDamage,0), orderTotal=allRows.reduce((a,r)=>a+r.order,0), editedTotal=todaySubs.filter(s=>s.editedAt||s.editedBy||s.editReason).length, missingTotal=Math.max(0,expected-todaySubs.length);
+  const overallScore=Math.max(0,Math.min(100,100-(missingTotal*5)-(expiredTotal>0?8:0)-editedTotal*2));
+  document.getElementById('ceo-score').textContent=`${overallScore}%`;document.getElementById('ceo-submissions').textContent=todaySubs.length;document.getElementById('ceo-missing').textContent=missingTotal;document.getElementById('ceo-expired').textContent=expiredTotal;document.getElementById('ceo-orders').textContent=orderTotal;document.getElementById('ceo-edits').textContent=editedTotal;
+  const cards=[],matrix=[];
+  Object.entries(BRANCH_SHORT).forEach(([branch,label])=>{
+    const subs=todaySubs.filter(s=>s.branch===branch), am=subs.some(s=>s.shift==='AM'), pm=subs.some(s=>s.shift==='PM'), rows=subs.flatMap(ceoRowsFromSubmission), edits=subs.filter(s=>s.editedAt||s.editedBy||s.editReason).length, orders=rows.reduce((a,r)=>a+r.order,0), exp=rows.reduce((a,r)=>a+r.expiredDamage,0), score=ceoBranchScore(rows,am,pm,edits), cls=ceoScoreClass(score);
+    cards.push(`<div class="ceo-branch-card"><div class="ceo-branch-head"><div><div class="ceo-branch-name">${label}</div><div class="ceo-branch-sub">${subs.length?`Last: ${subs[0].name} · ${subs[0].time}`:'No submission today'}</div></div><div class="ceo-score ${cls}">${score}%</div></div><div class="ceo-metrics"><div class="ceo-metric"><small>AM</small><strong class="${am?'ceo-risk-ok':'ceo-risk-high'}">${am?'Done':'Miss'}</strong></div><div class="ceo-metric"><small>PM</small><strong class="${pm?'ceo-risk-ok':'ceo-risk-high'}">${pm?'Done':'Miss'}</strong></div><div class="ceo-metric"><small>Orders</small><strong>${orders}</strong></div><div class="ceo-metric"><small>Expired</small><strong class="${exp?'ceo-risk-high':''}">${exp}</strong></div></div></div>`);
+    matrix.push(`<tr><td style="font-weight:700">${label}</td><td>${am?'<span class="ceo-risk-ok">Done</span>':'<span class="ceo-risk-high">Missing</span>'}</td><td>${pm?'<span class="ceo-risk-ok">Done</span>':'<span class="ceo-risk-high">Missing</span>'}</td><td>${subs.length}</td><td>${orders}</td><td>${exp}</td><td>${edits}</td><td>${ceoRiskLabel(score)}</td><td><span class="ceo-score ${cls}">${score}%</span></td></tr>`);
+  });
+  document.getElementById('ceo-branch-board').innerHTML=cards.join('');document.getElementById('ceo-branch-matrix').innerHTML=matrix.join('');
+  const riskRows=allRows.filter(r=>r.expiredDamage>0||r.order>0).sort((a,b)=>((b.expiredDamage*10)+b.order)-((a.expiredDamage*10)+a.order)).slice(0,12);
+  document.getElementById('ceo-risk-table').innerHTML=riskRows.map(r=>`<tr><td class="${r.expiredDamage>0?'ceo-risk-high':'ceo-risk-med'}">${r.expiredDamage>0?'High':'Medium'}</td><td>${r.branchShort}</td><td>${r.item}</td><td>${r.code||'—'}</td><td>${r.expiredDamage>0?`Expired/Damage ${r.expiredDamage}`:`Order demand ${r.order}`}</td></tr>`).join('')||'<tr><td colspan="5">No major stock-control risks today.</td></tr>';
+  document.getElementById('ceo-item-summary').innerHTML=allRows.sort((a,b)=>(b.expiredDamage*10+b.order)-(a.expiredDamage*10+a.order)).slice(0,80).map(r=>`<tr><td>${r.branchShort}</td><td>${r.shift}</td><td>${r.section}</td><td>${r.code||'—'}</td><td style="font-weight:600">${r.item}</td><td>${r.opening}</td><td>${r.received}</td><td>${r.soldUsed}</td><td>${r.closing}</td><td>${r.order}</td><td>${r.expiredDamage}</td><td>${r.expiredDamage>0?'<span class="ceo-risk-high">Expired/Damage</span>':r.order>0?'<span class="ceo-risk-med">Order demand</span>':'<span class="ceo-risk-ok">OK</span>'}</td></tr>`).join('')||'<tr><td colspan="12">No item movement data today.</td></tr>';
+  const dates=[];for(let i=4;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(d.toISOString().split('T')[0]);}
+  const counts=dates.map(d=>(submissions||[]).filter(s=>s.date===d).length), max=Math.max(...counts,1);
+  document.getElementById('ceo-trend-chart').innerHTML=counts.map(c=>`<div class="ceo-bar" style="height:${Math.max(8,Math.round(c/max*150))}px"><span>${c}</span></div>`).join('');
+  document.getElementById('ceo-trend-labels').innerHTML=dates.map(d=>`<div>${d.slice(5)}</div>`).join('');
+  const actions=[];Object.entries(BRANCH_SHORT).forEach(([branch,label])=>{const subs=todaySubs.filter(s=>s.branch===branch);if(!subs.some(s=>s.shift==='AM'))actions.push({level:'high',title:`${label}: AM submission missing`,sub:'Follow up before operational decisions are made.'});if(!subs.some(s=>s.shift==='PM'))actions.push({level:'med',title:`${label}: PM submission pending`,sub:'Evening closing is required for next-day opening accuracy.'});});
+  if(expiredTotal>0)actions.push({level:'high',title:'Expired/Damage stock reported',sub:`Total quantity ${expiredTotal}. Confirm disposal and correction actions.`});if(editedTotal>0)actions.push({level:'med',title:'Supervisor corrections made',sub:`${editedTotal} corrected submission(s). Review audit trail for process gaps.`});
+  document.getElementById('ceo-action-list').innerHTML=actions.slice(0,12).map(a=>`<div class="ceo-action ${a.level}"><h4>${a.title}</h4><p>${a.sub}</p></div>`).join('')||'<div class="ceo-action"><h4>All clear</h4><p>No major CEO-level action items for today.</p></div>';
+}
+
 function switchView(v, btn) {
   document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
   document.getElementById('view-' + v).classList.add('active');
   btn.classList.add('active');
   if (v === 'dash') renderDash();
+  if (v === 'ceo') renderCeoDash();
   if (v === 'prod-orders') renderProductionOrders();
   if (v === 'prod-summary') renderProductionSummary();
 }
@@ -1249,54 +1910,743 @@ async function loadSubmissions() {
   submissions = (data || []).map(rowToSub);
 }
 
+
+function parseTimeToMinutes(t) {
+  if (!t) return null;
+  const m = String(t).match(/(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function isLateSubmission(s) {
+  const mins = parseTimeToMinutes(s.time);
+  if (mins === null) return false;
+  return s.shift === 'AM' ? mins > (12 * 60) : mins > (21 * 60);
+}
+
+function getSubmissionIssueFlags(s) {
+  return {
+    expired: (s.expiredItems?.length || 0) > 0,
+    edited: !!(s.editedAt || s.editedBy || s.editReason),
+    late: isLateSubmission(s),
+    empty: !((s.pkg||[]).length || (s.ih||[]).length || (s.rm||[]).length)
+  };
+}
+
+function filterDashRows(rows) {
+  const mode = (document.getElementById('f-mode') || {}).value || '';
+  if (!mode) return rows;
+  return rows.filter(s => {
+    const f = getSubmissionIssueFlags(s);
+    if (mode === 'issues') return f.expired || f.edited || f.late || f.empty;
+    if (mode === 'edited') return f.edited;
+    if (mode === 'expired') return f.expired;
+    if (mode === 'late') return f.late;
+    return true;
+  });
+}
+
+
+function dashboardNowMinutes() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function shiftWindowInfo(shift) {
+  if (shift === 'AM') return { start: 6 * 60, end: 12 * 60, label: '06:00–12:00' };
+  if (shift === 'PM') return { start: 12 * 60 + 1, end: 24 * 60, label: '12:01–00:00' };
+  return { start: 0, end: 24 * 60, label: '' };
+}
+
+function getShiftLiveStatus(shift, submission) {
+  if (submission) {
+    return {
+      key: 'submitted',
+      text: 'Submitted',
+      cls: 'status-ok',
+      dot: 'dot-g',
+      meta: `${submission.name} · ${submission.time}`,
+      dueForMissing: false,
+      started: true,
+      completed: true
+    };
+  }
+
+  const now = dashboardNowMinutes();
+  const win = shiftWindowInfo(shift);
+
+  if (now < win.start) {
+    return {
+      key: 'waiting',
+      text: 'Not started',
+      cls: 'status-wait',
+      dot: 'dot-x',
+      meta: `Starts ${String(Math.floor(win.start / 60)).padStart(2, '0')}:${String(win.start % 60).padStart(2, '0')}`,
+      dueForMissing: false,
+      started: false,
+      completed: false
+    };
+  }
+
+  if (now <= win.end) {
+    return {
+      key: 'open',
+      text: 'Shift open',
+      cls: 'status-warn',
+      dot: 'dot-a',
+      meta: `Expected before ${shift === 'AM' ? '12:00' : '00:00'}`,
+      dueForMissing: false,
+      started: true,
+      completed: false
+    };
+  }
+
+  return {
+    key: 'missing',
+    text: 'Missing',
+    cls: 'status-bad',
+    dot: 'dot-x',
+    meta: 'Shift ended without submission',
+    dueForMissing: true,
+    started: true,
+    completed: false
+  };
+}
+
+function countStartedShiftSlots() {
+  const now = dashboardNowMinutes();
+  let count = 0;
+  if (now >= 6 * 60) count += 1;
+  if (now >= 12 * 60 + 1) count += 1;
+  return count;
+}
+
+function countMissingShiftSlots(subMap) {
+  let missing = 0;
+  Object.entries(subMap || {}).forEach(([branch, v]) => {
+    if (currentRole === 'merchandiser' && branch !== currentBranch) return;
+    if (getShiftLiveStatus('AM', v.am).dueForMissing) missing += 1;
+    if (getShiftLiveStatus('PM', v.pm).dueForMissing) missing += 1;
+  });
+  return missing;
+}
+
+
+function branchSubmissionMap(scopeSubs) {
+  const map = {};
+  Object.keys(BRANCH_SHORT).forEach(k => map[k] = {am:null, pm:null});
+  scopeSubs.forEach(s => {
+    if (!map[s.branch]) map[s.branch] = {am:null, pm:null};
+    if (s.shift === 'AM' && !map[s.branch].am) map[s.branch].am = s;
+    if (s.shift === 'PM' && !map[s.branch].pm) map[s.branch].pm = s;
+  });
+  return map;
+}
+
+function buildIssuePanel(scopeSubs, subMap) {
+  const issues = [];
+  Object.entries(subMap).forEach(([branch, v]) => {
+    if (currentRole === 'merchandiser' && branch !== currentBranch) return;
+    const amStatus = getShiftLiveStatus('AM', v.am);
+    const pmStatus = getShiftLiveStatus('PM', v.pm);
+
+    if (amStatus.key === 'missing') {
+      issues.push({level:'high', title:`${BRANCH_SHORT[branch]} — AM missing`, sub:'AM shift ended at 12:00 and submission was not received.'});
+    } else if (amStatus.key === 'open') {
+      issues.push({level:'med', title:`${BRANCH_SHORT[branch]} — AM shift open`, sub:'AM submission window is active. Do not mark as missing yet.'});
+    }
+
+    if (pmStatus.key === 'missing') {
+      issues.push({level:'high', title:`${BRANCH_SHORT[branch]} — PM missing`, sub:'PM shift ended and submission was not received.'});
+    } else if (pmStatus.key === 'open') {
+      issues.push({level:'med', title:`${BRANCH_SHORT[branch]} — PM shift open`, sub:'PM submission window is active. Do not mark as missing yet.'});
+    }
+  });
+
+  scopeSubs.forEach(s => {
+    const flags = getSubmissionIssueFlags(s);
+    if (flags.expired) issues.push({level:'med', title:`${s.branchShort} (${s.shift}) — ${s.expiredItems.length} expired item(s)`, sub:`Reported by ${s.name} at ${s.time}.`});
+    if (flags.edited) issues.push({level:'low', title:`${s.branchShort} (${s.shift}) — submission corrected`, sub:`Edited by ${s.editedBy || 'Supervisor'}${s.editReason ? ' — ' + s.editReason : ''}`});
+    if (flags.late) issues.push({level:'med', title:`${s.branchShort} (${s.shift}) — late submission`, sub:`Submitted by ${s.name} at ${s.time}.`});
+  });
+
+  const levelRank = { high: 0, med: 1, low: 2 };
+  issues.sort((a,b) => levelRank[a.level] - levelRank[b.level]);
+
+  const container = document.getElementById('issue-list');
+  if (!container) return;
+  if (!issues.length) {
+    container.innerHTML = '<div class="empty">No operational issues detected for the current shift window.</div>';
+    return;
+  }
+  container.innerHTML = issues.slice(0, 20).map(i => `<div class="issue-item issue-${i.level}">
+      <div class="issue-title">${i.title}</div>
+      <div class="issue-sub">${i.sub}</div>
+    </div>`).join('');
+}
+
+function buildBranchCards(scopeSubs, subMap) {
+  const container = document.getElementById('br-grid');
+  if (!container) return;
+  const entries = currentRole === 'merchandiser' ? [[currentBranch, BRANCH_SHORT[currentBranch]]] : Object.entries(BRANCH_SHORT);
+  container.innerHTML = entries.map(([branch, shortName]) => {
+    const am = subMap[branch]?.am || null;
+    const pm = subMap[branch]?.pm || null;
+    const amStatus = getShiftLiveStatus('AM', am);
+    const pmStatus = getShiftLiveStatus('PM', pm);
+    const branchRows = scopeSubs.filter(s => s.branch === branch);
+    const expiredCount = branchRows.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+    const editedCount = branchRows.filter(s => getSubmissionIssueFlags(s).edited).length;
+    const last = branchRows[0] || null;
+
+    let dotClass = 'dot-x';
+    if (amStatus.completed && pmStatus.completed) dotClass = 'dot-g';
+    else if (amStatus.completed || pmStatus.completed || amStatus.key === 'open' || pmStatus.key === 'open') dotClass = 'dot-a';
+
+    return `<div class="branch-card-ops">
+      <div class="branch-card-head">
+        <div>
+          <div class="branch-card-name">${shortName}</div>
+          <div class="branch-meta">${last ? `Last submission: ${last.name} at ${last.time}` : 'No submission yet'}</div>
+        </div>
+        <div class="dot ${dotClass}"></div>
+      </div>
+      <div class="branch-status-grid">
+        <div class="status-box">
+          <div class="status-label">AM · 06:00–12:00</div>
+          <div class="status-value ${amStatus.cls}">${amStatus.text}</div>
+          <div class="branch-meta">${amStatus.meta}</div>
+        </div>
+        <div class="status-box">
+          <div class="status-label">PM · 12:01–00:00</div>
+          <div class="status-value ${pmStatus.cls}">${pmStatus.text}</div>
+          <div class="branch-meta">${pmStatus.meta}</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="mini-pill">Expired: ${expiredCount}</span>
+        <span class="mini-pill">Edited: ${editedCount}</span>
+        <span class="mini-pill">Today rows: ${branchRows.length}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let currentBranchDrawer = null;
+let currentBranchDrawerSections = { yesterday: null, today: null };
+
+function latestSubmissionForBranch(rows, branch, dateFilter) {
+  const candidates = rows
+    .filter(s => s.branch === branch && (!dateFilter || s.date === dateFilter))
+    .sort((a,b) => String(b.time || '').localeCompare(String(a.time || '')));
+  return candidates[0] || null;
+}
+
+function summarizeSubmissionForBranchView(s) {
+  if (!s) return '<div class="branch-meta">No submission found</div>';
+  const pkgCount = (s.pkg || []).filter(r => r.opening || r.received || r.prepared || r.sold || r.expired || r.returned || r.closing || r.order).length;
+  const ihCount = (s.ih || []).filter(r => r.am || r.pm || r.total || r.sold || r.expired || r.sampling || r.custReturn || r.remarks).length;
+  const rmCount = (s.rm || []).filter(r => r.opening || r.received || r.used || r.damage || r.closing || r.order).length;
+  return `
+    <div class="branch-meta"><strong>Shift:</strong> ${s.shift || '—'}</div>
+    <div class="branch-meta"><strong>Submitted by:</strong> ${s.name || '—'}</div>
+    <div class="branch-meta"><strong>Time:</strong> ${s.time || '—'}</div>
+    <div class="branch-meta"><strong>Packaged rows:</strong> ${pkgCount}</div>
+    <div class="branch-meta"><strong>In-house rows:</strong> ${ihCount}</div>
+    <div class="branch-meta"><strong>Raw rows:</strong> ${rmCount}</div>
+    <div class="branch-meta"><strong>Expired items:</strong> ${(s.expiredItems || []).length}</div>
+  `;
+}
+
+function meaningfulRowsForSection(rows, section) {
+  if (section === 'pkg') return (rows || []).filter(r => r.opening || r.received || r.prepared || r.sold || r.expired || r.returned || r.closing || r.order);
+  if (section === 'ih') return (rows || []).filter(r => r.am || r.pm || r.total || r.sold || r.expired || r.sampling || r.custReturn || r.remarks);
+  return (rows || []).filter(r => r.opening || r.received || r.used || r.damage || r.closing || r.order);
+}
+
+function buildBranchCompareTable(section) {
+  const ys = currentBranchDrawerSections.yesterday;
+  const ts = currentBranchDrawerSections.today;
+  const yRows = meaningfulRowsForSection(ys ? ys[section] : [], section);
+  const tRows = meaningfulRowsForSection(ts ? ts[section] : [], section);
+  const todayMap = new Map((tRows || []).map(r => [String(r.code || '').trim(), r]));
+  const combined = [];
+
+  yRows.forEach(r => {
+    const code = String(r.code || '').trim();
+    combined.push({ code, name: r.name || '', uom: r.uom || '', y: r, t: todayMap.get(code) || null });
+    todayMap.delete(code);
+  });
+  todayMap.forEach((r, code) => {
+    combined.push({ code, name: r.name || '', uom: r.uom || '', y: null, t: r });
+  });
+
+  if (!combined.length) return '<div class="empty">No data available for this section.</div>';
+
+  if (section === 'pkg') {
+    return `<div class="tbl-wrap"><table>
+      <thead><tr><th>Code</th><th>Item</th><th>UOM</th><th>Yesterday Closing</th><th>Today Opening</th><th>Today Closing</th><th>Order</th><th>Expired</th></tr></thead>
+      <tbody>${combined.map(r => `
+        <tr>
+          <td>${r.code || '—'}</td>
+          <td class="iname">${r.name}</td>
+          <td>${r.uom}</td>
+          <td>${r.y ? (r.y.closing || '—') : '—'}</td>
+          <td style="font-weight:600;background:var(--green-light)">${r.t ? (r.t.opening || '—') : '—'}</td>
+          <td>${r.t ? (r.t.closing || '—') : '—'}</td>
+          <td>${r.t ? (r.t.order || '—') : '—'}</td>
+          <td style="color:${r.t && r.t.expired ? 'var(--red)' : 'inherit'}">${r.t ? (r.t.expired || '—') : '—'}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+  }
+  if (section === 'ih') {
+    return `<div class="tbl-wrap"><table>
+      <thead><tr><th>Code</th><th>Item</th><th>UOM</th><th>AM Prep</th><th>PM Prep</th><th>Total</th><th>Sold</th><th>Expired</th></tr></thead>
+      <tbody>${combined.map(r => `
+        <tr>
+          <td>${r.code || '—'}</td>
+          <td class="iname">${r.name}</td>
+          <td>${r.uom}</td>
+          <td>${r.t ? (r.t.am || '—') : '—'}</td>
+          <td>${r.t ? (r.t.pm || '—') : '—'}</td>
+          <td style="font-weight:600;background:var(--green-light)">${r.t ? (r.t.total || '—') : '—'}</td>
+          <td>${r.t ? (r.t.sold || '—') : '—'}</td>
+          <td style="color:${r.t && r.t.expired ? 'var(--red)' : 'inherit'}">${r.t ? (r.t.expired || '—') : '—'}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+  }
+  return `<div class="tbl-wrap"><table>
+      <thead><tr><th>Code</th><th>Item</th><th>UOM</th><th>Yesterday Closing</th><th>Today Opening</th><th>Today Closing</th><th>Order</th><th>Damage</th></tr></thead>
+      <tbody>${combined.map(r => `
+        <tr>
+          <td>${r.code || '—'}</td>
+          <td class="iname">${r.name}</td>
+          <td>${r.uom}</td>
+          <td>${r.y ? (r.y.closing || '—') : '—'}</td>
+          <td style="font-weight:600;background:var(--green-light)">${r.t ? (r.t.opening || '—') : '—'}</td>
+          <td>${r.t ? (r.t.closing || '—') : '—'}</td>
+          <td>${r.t ? (r.t.order || '—') : '—'}</td>
+          <td>${r.t ? (r.t.damage || '—') : '—'}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+}
+
+function showBranchSection(section, btn) {
+  document.querySelectorAll('.section-toggle-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const body = document.getElementById('branch-detail-body');
+  if (!body) return;
+  body.innerHTML = buildBranchCompareTable(section);
+}
+
+function closeBranchDrawer() {
+  currentBranchDrawer = null;
+  currentBranchDrawerSections = { yesterday: null, today: null };
+  const drawer = document.getElementById('branch-detail-drawer');
+  if (drawer) drawer.style.display = 'none';
+}
+
+function openBranchDrawer(branch) {
+  currentBranchDrawer = branch;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+  const todaySub = latestSubmissionForBranch(submissions, branch, today);
+  const yesterdaySub = latestSubmissionForBranch(submissions, branch, yesterday);
+
+  currentBranchDrawerSections = { yesterday: yesterdaySub, today: todaySub };
+
+  document.getElementById('branch-drawer-title').textContent = `${BRANCH_SHORT[branch] || branch} — Yesterday vs Today`;
+  document.getElementById('branch-yesterday-summary').innerHTML = summarizeSubmissionForBranchView(yesterdaySub);
+  document.getElementById('branch-today-summary').innerHTML = summarizeSubmissionForBranchView(todaySub);
+  const drawer = document.getElementById('branch-detail-drawer');
+  drawer.style.display = 'block';
+  showBranchSection('pkg', document.querySelector('.section-toggle-btn'));
+  drawer.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function buildBranchExplorer(scopeSubs) {
+  const container = document.getElementById('branch-detail-grid');
+  if (!container) return;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+  const entries = currentRole === 'merchandiser' ? [[currentBranch, BRANCH_SHORT[currentBranch]]] : Object.entries(BRANCH_SHORT);
+  container.innerHTML = entries.map(([branch, shortName]) => {
+    const todaySub = latestSubmissionForBranch(submissions, branch, today);
+    const yesterdaySub = latestSubmissionForBranch(submissions, branch, yesterday);
+    return `<div class="branch-detail-card" onclick="openBranchDrawer('${branch}')">
+      <div class="branch-detail-title">${shortName}</div>
+      <div class="branch-detail-meta"><strong>Yesterday:</strong> ${yesterdaySub ? `${yesterdaySub.shift} · ${yesterdaySub.time}` : 'No data'}</div>
+      <div class="branch-detail-meta"><strong>Today:</strong> ${todaySub ? `${todaySub.shift} · ${todaySub.time}` : 'No live data yet'}</div>
+      <div class="branch-detail-meta"><strong>Click to view:</strong> opening, closing, order, expired, and item-level detail</div>
+    </div>`;
+  }).join('');
+}
+
+
+
+function getLastNDatesFromSubmissions(n = 7) {
+  const dates = [...new Set((submissions || []).map(s => s.date).filter(Boolean))].sort().reverse();
+  const today = new Date().toISOString().split('T')[0];
+  if (!dates.includes(today)) dates.unshift(today);
+  return [...new Set(dates)].slice(0, n);
+}
+
+function sumRows(rows, fields) {
+  const totals = {};
+  fields.forEach(f => totals[f] = 0);
+  (rows || []).forEach(r => {
+    fields.forEach(f => totals[f] += Number(r[f] || 0));
+  });
+  return totals;
+}
+
+function getSubmissionSummaryMetrics(rows) {
+  const allPkg = [];
+  const allIh = [];
+  const allRm = [];
+  rows.forEach(s => {
+    (s.pkg || []).forEach(r => allPkg.push({...r, _branch:s.branchShort, _shift:s.shift, _by:s.name}));
+    (s.ih || []).forEach(r => allIh.push({...r, _branch:s.branchShort, _shift:s.shift, _by:s.name}));
+    (s.rm || []).forEach(r => allRm.push({...r, _branch:s.branchShort, _shift:s.shift, _by:s.name}));
+  });
+
+  const pkgTotals = sumRows(allPkg, ['opening','received','prepared','sold','expired','returned','closing','order']);
+  const ihTotals = sumRows(allIh, ['am','pm','total','sold','expired','sampling','custReturn']);
+  const rmTotals = sumRows(allRm, ['opening','received','used','damage','closing','order']);
+
+  return { allPkg, allIh, allRm, pkgTotals, ihTotals, rmTotals };
+}
+
+function meaningfulDailyRows(rows, section) {
+  if (section === 'pkg') return (rows || []).filter(r => Number(r.opening||0) || Number(r.received||0) || Number(r.prepared||0) || Number(r.sold||0) || Number(r.expired||0) || Number(r.returned||0) || Number(r.closing||0) || Number(r.order||0));
+  if (section === 'ih') return (rows || []).filter(r => Number(r.am||0) || Number(r.pm||0) || Number(r.total||0) || Number(r.sold||0) || Number(r.expired||0) || Number(r.sampling||0) || Number(r.custReturn||0) || String(r.remarks||'').trim());
+  return (rows || []).filter(r => Number(r.opening||0) || Number(r.received||0) || Number(r.used||0) || Number(r.damage||0) || Number(r.closing||0) || Number(r.order||0));
+}
+
+function topDailyRows(rows, field, limit = 10) {
+  return [...rows].filter(r => Number(r[field] || 0) > 0).sort((a,b) => Number(b[field]||0) - Number(a[field]||0)).slice(0, limit);
+}
+
+function renderDailyButtons() {
+  const row = document.getElementById('daily-button-row');
+  if (!row) return;
+  const dates = getLastNDatesFromSubmissions(7);
+  row.innerHTML = dates.map((d, idx) => `<button class="daily-btn ${idx === 0 ? 'active' : ''}" onclick="showDailySummary('${d}', this)">${d}</button>`).join('');
+  if (dates.length) showDailySummary(dates[0], row.querySelector('.daily-btn'));
+}
+
+function showDailySummary(date, btn) {
+  document.querySelectorAll('.daily-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const panel = document.getElementById('daily-detail-panel');
+  const body = document.getElementById('daily-detail-body');
+  if (!panel || !body) return;
+
+  const rows = (submissions || []).filter(s => s.date === date);
+  const expected = Object.keys(BRANCH_SHORT || {}).length * 2;
+  const branches = [...new Set(rows.map(s => s.branch))];
+  const edited = rows.filter(s => s.editedAt || s.editedBy || s.editReason).length;
+  const expiredFlags = rows.reduce((a,s) => a + ((s.expiredItems || []).length), 0);
+  const late = rows.filter(s => typeof isLateSubmission === 'function' ? isLateSubmission(s) : false).length;
+  const metrics = getSubmissionSummaryMetrics(rows);
+
+  const pkgMeaningful = meaningfulDailyRows(metrics.allPkg, 'pkg');
+  const ihMeaningful = meaningfulDailyRows(metrics.allIh, 'ih');
+  const rmMeaningful = meaningfulDailyRows(metrics.allRm, 'rm');
+
+  const missingHtml = Object.entries(BRANCH_SHORT).map(([branch, label]) => {
+    const am = rows.some(s => s.branch === branch && s.shift === 'AM');
+    const pm = rows.some(s => s.branch === branch && s.shift === 'PM');
+    if (am && pm) return '';
+    return `<tr><td>${label}</td><td>${am ? '<span style="color:var(--green-mid);font-weight:600">Submitted</span>' : '<span style="color:var(--red);font-weight:600">Missing</span>'}</td><td>${pm ? '<span style="color:var(--green-mid);font-weight:600">Submitted</span>' : '<span style="color:var(--red);font-weight:600">Missing</span>'}</td></tr>`;
+  }).join('');
+
+  const topOrders = topDailyRows([...pkgMeaningful, ...rmMeaningful], 'order', 12);
+  const topExpired = topDailyRows([...pkgMeaningful, ...ihMeaningful], 'expired', 12);
+  const topClosing = topDailyRows([...pkgMeaningful, ...rmMeaningful], 'closing', 12);
+
+  body.innerHTML = `
+    <div class="daily-kpi-grid">
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Date</div><div class="daily-kpi-val" style="font-size:16px">${date}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Submissions</div><div class="daily-kpi-val">${rows.length}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Missing</div><div class="daily-kpi-val" style="color:var(--red)">${Math.max(0, expected - rows.length)}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Branches</div><div class="daily-kpi-val">${branches.length}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Expired flags</div><div class="daily-kpi-val" style="color:var(--red)">${expiredFlags}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Edited</div><div class="daily-kpi-val" style="color:var(--blue)">${edited}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Late</div><div class="daily-kpi-val" style="color:var(--amber)">${late}</div></div>
+      <div class="daily-kpi"><div class="daily-kpi-lbl">Order total</div><div class="daily-kpi-val">${Number(metrics.pkgTotals.order||0) + Number(metrics.rmTotals.order||0)}</div></div>
+    </div>
+
+    ${rows.length ? '' : '<div class="daily-warning">No submission data found for this date.</div>'}
+
+    <div class="daily-section-title">Branch AM / PM status</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Branch</th><th>AM</th><th>PM</th></tr></thead>
+      <tbody>${missingHtml || '<tr><td colspan="3">All branches completed AM and PM.</td></tr>'}</tbody>
+    </table></div>
+
+    <div class="daily-section-title">Section totals</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Section</th><th>Opening</th><th>Received/Prepared</th><th>Sold/Used</th><th>Closing</th><th>Order</th><th>Expired/Damage</th></tr></thead>
+      <tbody>
+        <tr><td>Packaged</td><td>${metrics.pkgTotals.opening}</td><td>${metrics.pkgTotals.received} / ${metrics.pkgTotals.prepared}</td><td>${metrics.pkgTotals.sold}</td><td>${metrics.pkgTotals.closing}</td><td>${metrics.pkgTotals.order}</td><td style="color:var(--red)">${metrics.pkgTotals.expired}</td></tr>
+        <tr><td>In-house</td><td>—</td><td>${metrics.ihTotals.am} AM / ${metrics.ihTotals.pm} PM / ${metrics.ihTotals.total} Total</td><td>${metrics.ihTotals.sold}</td><td>—</td><td>—</td><td style="color:var(--red)">${metrics.ihTotals.expired}</td></tr>
+        <tr><td>Raw materials</td><td>${metrics.rmTotals.opening}</td><td>${metrics.rmTotals.received}</td><td>${metrics.rmTotals.used}</td><td>${metrics.rmTotals.closing}</td><td>${metrics.rmTotals.order}</td><td style="color:var(--red)">${metrics.rmTotals.damage}</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="daily-section-title">Top order items</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Branch</th><th>Shift</th><th>Item</th><th>Code</th><th>Order Qty</th></tr></thead>
+      <tbody>${topOrders.map(r => `<tr><td>${r._branch || ''}</td><td>${r._shift || ''}</td><td>${r.name || ''}</td><td>${r.code || ''}</td><td style="font-weight:700">${r.order || 0}</td></tr>`).join('') || '<tr><td colspan="5">No order quantity entered.</td></tr>'}</tbody>
+    </table></div>
+
+    <div class="daily-section-title">Top expired / damage items</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Branch</th><th>Shift</th><th>Item</th><th>Code</th><th>Expired/Damage Qty</th></tr></thead>
+      <tbody>${topExpired.map(r => `<tr><td>${r._branch || ''}</td><td>${r._shift || ''}</td><td>${r.name || ''}</td><td>${r.code || ''}</td><td style="color:var(--red);font-weight:700">${r.expired || 0}</td></tr>`).join('') || '<tr><td colspan="5">No expired items entered.</td></tr>'}</tbody>
+    </table></div>
+
+    <div class="daily-section-title">Top closing stock items</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Branch</th><th>Shift</th><th>Item</th><th>Code</th><th>Closing Qty</th></tr></thead>
+      <tbody>${topClosing.map(r => `<tr><td>${r._branch || ''}</td><td>${r._shift || ''}</td><td>${r.name || ''}</td><td>${r.code || ''}</td><td style="font-weight:700">${r.closing || 0}</td></tr>`).join('') || '<tr><td colspan="5">No closing stock entered.</td></tr>'}</tbody>
+    </table></div>
+
+    <div class="daily-section-title">All submissions for selected day</div>
+    <div class="tbl-wrap"><table class="daily-mini-table">
+      <thead><tr><th>Branch</th><th>Shift</th><th>Submitted by</th><th>Time</th><th>Packaged rows</th><th>In-house rows</th><th>Raw rows</th><th>Remarks</th><th>View</th></tr></thead>
+      <tbody>${rows.map(s => `<tr><td>${s.branchShort}</td><td>${s.shift}</td><td>${s.name}</td><td>${s.time}</td><td>${(s.pkg||[]).length}</td><td>${(s.ih||[]).length}</td><td>${(s.rm||[]).length}</td><td>${s.remarks || '—'}</td><td><button class="btn" onclick="showDetail('${s.id}')">View</button></td></tr>`).join('') || '<tr><td colspan="9">No submissions.</td></tr>'}</tbody>
+    </table></div>
+  `;
+
+  panel.classList.add('show');
+}
+
+
+function entNumber(v) {
+  const n = Number(v || 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function entDateOffset(baseDate, days) {
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function entLatestByBranchDate(branch, date) {
+  return (submissions || [])
+    .filter(s => s.branch === branch && s.date === date)
+    .sort((a,b) => String(b.time || '').localeCompare(String(a.time || '')))[0] || null;
+}
+
+function entRowsFromSubmission(s, section) {
+  if (!s) return [];
+  if (section === 'pkg') {
+    return (s.pkg || []).map(r => ({
+      branch:s.branch, branchShort:s.branchShort, shift:s.shift, date:s.date, time:s.time, by:s.name,
+      section:'pkg', sectionLabel:'Packaged', code:String(r.code||''), item:r.name||'', uom:r.uom||'',
+      opening:entNumber(r.opening), received:entNumber(r.received) + entNumber(r.prepared),
+      soldUsed:entNumber(r.sold), closing:entNumber(r.closing), order:entNumber(r.order),
+      expiredDamage:entNumber(r.expired)
+    }));
+  }
+  if (section === 'ih') {
+    return (s.ih || []).map(r => ({
+      branch:s.branch, branchShort:s.branchShort, shift:s.shift, date:s.date, time:s.time, by:s.name,
+      section:'ih', sectionLabel:'In-house', code:String(r.code||''), item:r.name||'', uom:r.uom||'',
+      opening:0, received:entNumber(r.total) || (entNumber(r.am) + entNumber(r.pm)),
+      soldUsed:entNumber(r.sold), closing:0, order:0,
+      expiredDamage:entNumber(r.expired)
+    }));
+  }
+  return (s.rm || []).map(r => ({
+    branch:s.branch, branchShort:s.branchShort, shift:s.shift, date:s.date, time:s.time, by:s.name,
+    section:'rm', sectionLabel:'Raw material', code:String(r.code||''), item:r.name||'', uom:r.uom||'',
+    opening:entNumber(r.opening), received:entNumber(r.received),
+    soldUsed:entNumber(r.used), closing:entNumber(r.closing), order:entNumber(r.order),
+    expiredDamage:entNumber(r.damage)
+  }));
+}
+
+function entMeaningful(row) {
+  return row.opening || row.received || row.soldUsed || row.closing || row.order || row.expiredDamage;
+}
+
+function entBuildYesterdayClosingMap(date, branchFilter) {
+  const yesterday = entDateOffset(date, -1);
+  const map = new Map();
+  Object.keys(BRANCH_SHORT).forEach(branch => {
+    if (branchFilter && branch !== branchFilter) return;
+    const sub = entLatestByBranchDate(branch, yesterday);
+    ['pkg','rm'].forEach(section => {
+      entRowsFromSubmission(sub, section).forEach(r => {
+        if (!r.code || !r.closing) return;
+        map.set(`${branch}|${section}|${r.code}`, r.closing);
+      });
+    });
+  });
+  return map;
+}
+
+function entCollectLedger(date, branchFilter, sectionFilter) {
+  const yesterdayClosingMap = entBuildYesterdayClosingMap(date, branchFilter);
+  const rows = [];
+  (submissions || []).filter(s => s.date === date && (!branchFilter || s.branch === branchFilter)).forEach(s => {
+    ['pkg','ih','rm'].forEach(section => {
+      if (sectionFilter && section !== sectionFilter) return;
+      entRowsFromSubmission(s, section).forEach(r => {
+        if (!entMeaningful(r)) return;
+        const yClosing = yesterdayClosingMap.get(`${r.branch}|${r.section}|${r.code}`) || 0;
+        const variance = (r.section === 'ih' || !r.code) ? 0 : r.opening - yClosing;
+        rows.push({...r, yesterdayClosing:yClosing, variance});
+      });
+    });
+  });
+  return rows;
+}
+
+function entStatus(row) {
+  if (row.variance !== 0 && row.section !== 'ih') return {txt:'Opening mismatch', cls:'score-bad'};
+  if (row.expiredDamage > 0) return {txt:'Expired/Damage', cls:'score-bad'};
+  if (row.order > 0) return {txt:'Order needed', cls:'score-warn'};
+  if (row.closing > 0) return {txt:'Stock available', cls:'score-good'};
+  return {txt:'OK', cls:'score-good'};
+}
+
+function setEnterpriseMode(mode, btn) {
+  const sel = document.getElementById('ent-mode');
+  if (sel) sel.value = mode;
+  document.querySelectorAll('.enterprise-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderEnterpriseDashboard();
+}
+
+function entApplyFilters(rows) {
+  const mode = (document.getElementById('ent-mode') || {}).value || '';
+  const q = String((document.getElementById('ent-search') || {}).value || '').toLowerCase().trim();
+
+  return rows.filter(r => {
+    if (q && !`${r.branchShort} ${r.shift} ${r.sectionLabel} ${r.code} ${r.item}`.toLowerCase().includes(q)) return false;
+    if (mode === 'exceptions') return r.variance !== 0 || r.expiredDamage > 0 || r.order > 0;
+    if (mode === 'orders') return r.order > 0;
+    if (mode === 'expired') return r.expiredDamage > 0;
+    if (mode === 'variance') return r.variance !== 0 && r.section !== 'ih';
+    if (mode === 'closing') return r.closing > 0;
+    return true;
+  });
+}
+
+function entScoreForBranch(rows, missingCount, editedCount) {
+  let score = 100;
+  score -= missingCount * 15;
+  score -= rows.filter(r => r.variance !== 0 && r.section !== 'ih').length * 8;
+  score -= rows.filter(r => r.expiredDamage > 0).length * 6;
+  score -= editedCount * 4;
+  return Math.max(0, Math.min(100, score));
+}
+
+function renderEnterpriseDashboard() {
+  if (!document.getElementById('enterprise-control-wrap')) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const branchFilter = (document.getElementById('ent-branch') || {}).value || '';
+  const sectionFilter = (document.getElementById('ent-section') || {}).value || '';
+
+  let ledger = entCollectLedger(today, branchFilter, sectionFilter);
+  let filtered = entApplyFilters(ledger);
+
+  const mismatchCount = filtered.filter(r => r.variance !== 0 && r.section !== 'ih').length;
+  const orderTotal = filtered.reduce((a,r) => a + r.order, 0);
+  const expTotal = filtered.reduce((a,r) => a + r.expiredDamage, 0);
+  const closingTotal = filtered.reduce((a,r) => a + r.closing, 0);
+  const overallScore = entScoreForBranch(ledger, 0, (submissions || []).filter(s => s.date === today && (s.editedAt || s.editedBy || s.editReason)).length);
+
+  document.getElementById('ent-rows').textContent = filtered.length;
+  document.getElementById('ent-mismatch').textContent = mismatchCount;
+  document.getElementById('ent-order').textContent = orderTotal;
+  document.getElementById('ent-expired').textContent = expTotal;
+  document.getElementById('ent-closing').textContent = closingTotal;
+  document.getElementById('ent-score').textContent = `${overallScore}%`;
+
+  const branchRowsHtml = Object.entries(BRANCH_SHORT).filter(([branch]) => !branchFilter || branch === branchFilter).map(([branch, label]) => {
+    const am = (submissions || []).some(s => s.branch === branch && s.date === today && s.shift === 'AM');
+    const pm = (submissions || []).some(s => s.branch === branch && s.date === today && s.shift === 'PM');
+    const bRows = ledger.filter(r => r.branch === branch);
+    const edited = (submissions || []).filter(s => s.branch === branch && s.date === today && (s.editedAt || s.editedBy || s.editReason)).length;
+    const missing = (am ? 0 : 1) + (pm ? 0 : 1);
+    const score = entScoreForBranch(bRows, missing, edited);
+    const scoreCls = score >= 85 ? 'score-good' : score >= 65 ? 'score-warn' : 'score-bad';
+    return `<tr>
+      <td style="font-weight:600">${label}</td>
+      <td>${am ? '<span class="risk-ok">Done</span>' : '<span class="risk-high">Missing</span>'}</td>
+      <td>${pm ? '<span class="risk-ok">Done</span>' : '<span class="risk-high">Missing</span>'}</td>
+      <td>${bRows.length}</td>
+      <td>${bRows.reduce((a,r)=>a+r.order,0)}</td>
+      <td>${bRows.reduce((a,r)=>a+r.expiredDamage,0)}</td>
+      <td>${bRows.filter(r => r.variance !== 0 && r.section !== 'ih').length}</td>
+      <td>${edited}</td>
+      <td><span class="score-pill ${scoreCls}">${score}%</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ent-branch-matrix').innerHTML = branchRowsHtml || '<tr><td colspan="9">No branch data found.</td></tr>';
+
+  const riskRows = [...filtered].filter(r => r.variance !== 0 || r.expiredDamage > 0 || r.order > 0)
+    .sort((a,b) => ((b.expiredDamage*10)+(Math.abs(b.variance)*5)+b.order) - ((a.expiredDamage*10)+(Math.abs(a.variance)*5)+a.order))
+    .slice(0, 15);
+  document.getElementById('ent-risk-items').innerHTML = riskRows.map(r => {
+    const reason = r.variance !== 0 && r.section !== 'ih' ? `Opening variance ${r.variance}` : r.expiredDamage > 0 ? `Expired/Damage ${r.expiredDamage}` : `Order ${r.order}`;
+    const risk = r.expiredDamage > 0 || (r.variance !== 0 && r.section !== 'ih') ? 'High' : 'Medium';
+    return `<tr><td class="${risk === 'High' ? 'risk-high' : 'risk-med'}">${risk}</td><td>${r.branchShort}</td><td>${r.item}</td><td>${r.code || '—'}</td><td>${reason}</td></tr>`;
+  }).join('') || '<tr><td colspan="5">No risk items in selected scope.</td></tr>';
+
+  document.getElementById('ent-item-ledger').innerHTML = filtered.map(r => {
+    const st = entStatus(r);
+    const varCls = r.variance > 0 ? 'variance-pos' : r.variance < 0 ? 'variance-neg' : 'variance-zero';
+    return `<tr>
+      <td>${r.branchShort}</td><td>${r.shift}</td><td>${r.sectionLabel}</td><td>${r.code || '—'}</td><td style="font-weight:600">${r.item}</td><td>${r.uom}</td>
+      <td>${r.section === 'ih' ? '—' : r.yesterdayClosing}</td>
+      <td>${r.section === 'ih' ? '—' : r.opening}</td>
+      <td>${r.received}</td><td>${r.soldUsed}</td><td>${r.section === 'ih' ? '—' : r.closing}</td><td>${r.order}</td><td>${r.expiredDamage}</td>
+      <td class="${varCls}">${r.section === 'ih' ? '—' : r.variance}</td>
+      <td><span class="score-pill ${st.cls}">${st.txt}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="15">No item movement rows found for selected filters.</td></tr>';
+}
+
 async function renderDash() {
   document.getElementById('sub-list').innerHTML = '<div class="empty">Loading...</div>';
   await loadSubmissions();
+  renderDailyButtons();
+
   const today = new Date().toISOString().split('T')[0];
   const allToday = submissions.filter(s => s.date === today || !s.date);
   const scopeSubs = currentRole === 'merchandiser'
     ? allToday.filter(s => s.branch === currentBranch)
-    : submissions;
-  const filtered = currentRole === 'merchandiser'
-    ? getFiltered().filter(s => s.date === today || !s.date)
-    : getFiltered();
-  const brs = [...new Set(scopeSubs.map(s => s.branch))].length;
-  const exf = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
-  const expectedCount = currentRole === 'merchandiser' ? 2 : Object.keys(BRANCHES).length * 2;
-  const supervisorTodayCount = allToday.length;
+    : allToday;
 
-  document.getElementById('ds-sub').textContent  = scopeSubs.length;
-  document.getElementById('ds-br').textContent   = currentRole === 'merchandiser' ? 1 : brs;
-  document.getElementById('ds-ex').textContent   = exf;
-  document.getElementById('ds-pend').textContent = currentRole === 'merchandiser'
-    ? Math.max(0, expectedCount - scopeSubs.length)
-    : Math.max(0, expectedCount - supervisorTodayCount);
+  const subMap = branchSubmissionMap(scopeSubs);
+  buildIssuePanel(scopeSubs, subMap);
+  buildBranchCards(scopeSubs, subMap);
+  buildBranchExplorer(scopeSubs);
 
-  const statLabels = document.querySelectorAll('.sc-lbl');
-  const statSubs = document.querySelector('#ds-sub')?.nextElementSibling;
-  const statBranches = document.querySelector('#ds-br')?.nextElementSibling;
-  const statExpired = document.querySelector('#ds-ex')?.nextElementSibling;
-  const statPending = document.querySelector('#ds-pend')?.nextElementSibling;
+  const totalCompletedBranches = Object.entries(subMap).filter(([branch, v]) => {
+    if (currentRole === 'merchandiser' && branch !== currentBranch) return false;
+    return !!(v.am && v.pm);
+  }).length;
 
-  if (currentRole === 'supervisor') {
-    if (statLabels[0]) statLabels[0].textContent = 'Submissions last 5 days';
-    if (statLabels[1]) statLabels[1].textContent = 'Branches reported';
-    if (statLabels[2]) statLabels[2].textContent = 'Expired flags last 5 days';
-    if (statLabels[3]) statLabels[3].textContent = 'Pending today';
-    if (statSubs) statSubs.textContent = 'rolling 5-day view';
-    if (statBranches) statBranches.textContent = 'active in last 5 days';
-    if (statExpired) statExpired.textContent = 'across last 5 days';
-    if (statPending) statPending.textContent = 'today only';
-  } else {
-    if (statLabels[0]) statLabels[0].textContent = 'Submissions today';
-    if (statLabels[1]) statLabels[1].textContent = 'My branch';
-    if (statLabels[2]) statLabels[2].textContent = 'Expired flags';
-    if (statLabels[3]) statLabels[3].textContent = 'Pending';
-    if (statSubs) statSubs.textContent = 'of 2 expected';
-    if (statBranches) statBranches.textContent = 'your branch only';
-    if (statExpired) statExpired.textContent = 'today for your branch';
-    if (statPending) statPending.textContent = 'submissions needed today';
-  }
+  const expiredTotal = scopeSubs.reduce((a, s) => a + (s.expiredItems?.length || 0), 0);
+  const editedTotal = scopeSubs.filter(s => getSubmissionIssueFlags(s).edited).length;
+  const lateTotal = scopeSubs.filter(s => getSubmissionIssueFlags(s).late).length;
+  const startedShiftSlots = countStartedShiftSlots();
+  const expectedCount = currentRole === 'merchandiser' ? startedShiftSlots : Object.keys(BRANCH_SHORT).length * startedShiftSlots;
+  const missingTotal = countMissingShiftSlots(subMap);
+
+  document.getElementById('ds-sub').textContent = scopeSubs.length;
+  document.getElementById('ds-br').textContent = totalCompletedBranches;
+  document.getElementById('ds-ex').textContent = expiredTotal;
+  document.getElementById('ds-pend').textContent = missingTotal;
+  document.getElementById('ds-edit').textContent = editedTotal;
+  document.getElementById('ds-late').textContent = lateTotal;
 
   const branchFilter = document.getElementById('f-branch');
   const exportBtn = document.getElementById('export-btn');
@@ -1308,51 +2658,46 @@ async function renderDash() {
     if (exportBtn) exportBtn.style.display = '';
   }
 
-  document.getElementById('alert-section').innerHTML = '';
+  let filtered = getFiltered().filter(s => currentRole === 'merchandiser' ? (s.date === today || !s.date) : true);
+  filtered = filterDashRows(filtered);
 
-  const branchEntries = currentRole === 'merchandiser'
-    ? [[currentBranch, BRANCH_SHORT[currentBranch]]]
-    : Object.entries(BRANCH_SHORT);
-
-  document.getElementById('br-grid').innerHTML = branchEntries.map(([id, name]) => {
-    const bs = scopeSubs.filter(s => s.branch === id);
-    const am = bs.some(s => s.shift === 'AM'), pm = bs.some(s => s.shift === 'PM');
-    const prog = Math.round(((am ? 1 : 0) + (pm ? 1 : 0)) / 2 * 100);
-    const cls = prog === 100 ? 'dot-g' : prog > 0 ? 'dot-a' : 'dot-x';
-    return `<div class="bc">
-      <div class="bc-hdr"><div class="bc-name">${name}</div><div class="dot ${cls}"></div></div>
-      <div class="bc-meta">
-        AM: <span style="color:${am?'var(--green-mid)':'var(--amber)'};font-weight:500">${am ? 'Submitted' : 'Pending'}</span><br>
-        PM: <span style="color:${pm?'var(--green-mid)':'var(--amber)'};font-weight:500">${pm ? 'Submitted' : 'Pending'}</span><br>
-        ${bs.length ? `Last: ${bs[bs.length-1].name} at ${bs[bs.length-1].time}` : 'No submissions yet'}
-      </div>
-      <div class="pbar"><div class="pfill" style="width:${prog}%"></div></div>
-    </div>`;
-  }).join('');
+  const summaryChip = document.getElementById('dash-summary-chip');
+  if (summaryChip) summaryChip.textContent = `${filtered.length} record(s) shown`;
 
   const listEl = document.getElementById('sub-list');
   if (!filtered.length) {
-    listEl.innerHTML = `<div class="empty">No submissions yet for ${currentRole === 'merchandiser' ? 'your branch today' : 'the last 5 days'}.</div>`;
+    listEl.innerHTML = `<div class="empty">No submissions match the selected dashboard filters.</div>`;
     return;
   }
+
   listEl.innerHTML = `<div class="tbl-wrap"><table>
     <thead><tr>
-      <th>Branch</th><th>Shift</th><th>Merchandiser</th><th>Date</th><th>Time</th>
-      <th>Expired flags</th><th>Remarks</th><th>Detail</th>
+      <th>Branch</th><th>Shift</th><th>Submitted by</th><th>Date</th><th>Time</th>
+      <th>Status</th><th>Expired</th><th>Edited</th><th>Remarks</th><th>Action</th>
     </tr></thead>
-    <tbody>${[...filtered].reverse().map(s => `
+    <tbody>${[...filtered].reverse().map(s => {
+      const flags = getSubmissionIssueFlags(s);
+      const statusParts = [];
+      if (flags.late) statusParts.push('Late');
+      if (flags.expired) statusParts.push('Expired');
+      if (flags.edited) statusParts.push('Edited');
+      if (flags.empty) statusParts.push('Empty');
+      const status = statusParts.length ? statusParts.join(' / ') : 'OK';
+      const statusColor = (flags.late || flags.expired) ? 'var(--red)' : (flags.edited ? 'var(--blue)' : 'var(--green-mid)');
+      return `
       <tr class="sub-row" onclick="showDetail('${s.id}')">
-        <td style="font-weight:500">${s.branchShort}</td>
+        <td style="font-weight:600">${s.branchShort}</td>
         <td><span class="sbadge ${s.shift === 'AM' ? 'sam' : 'spm'}">${s.shift}</span></td>
         <td>${s.name}</td>
         <td style="color:var(--text2)">${s.date}</td>
         <td style="color:var(--text2)">${s.time}</td>
-        <td>${s.expiredItems?.length
-          ? `<span style="color:var(--red);font-weight:500">${s.expiredItems.length} item(s)</span>`
-          : `<span style="color:var(--text3)">None</span>`}</td>
+        <td style="font-size:11px;color:${statusColor};font-weight:600">${status}</td>
+        <td>${s.expiredItems?.length ? `<span style="color:var(--red);font-weight:600">${s.expiredItems.length}</span>` : '<span style="color:var(--text3)">0</span>'}</td>
+        <td>${flags.edited ? `<span style="color:var(--blue);font-weight:600">Yes</span>` : '<span style="color:var(--text3)">No</span>'}</td>
         <td style="color:var(--text2);font-size:12px">${s.remarks || '—'}</td>
         <td><span style="font-size:11px;color:var(--blue);cursor:pointer">View</span></td>
-      </tr>`).join('')}
+      </tr>`;
+    }).join('')}
     </tbody></table></div>`;
 }
 
