@@ -35,7 +35,7 @@
     --radius-lg: 12px;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg3); min-height: 100vh; }
-  .app { width: 70%; max-width: none; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
+  .app { width: 91%; max-width: none; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
 
   /* Topbar */
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg); }
@@ -298,28 +298,7 @@
   @media (max-width: 1000px) { .enterprise-split { grid-template-columns:1fr; } }
 
 
-  /* 70% centered layout override */
-  body { background: var(--bg3); }
-  #main-app { width: 100%; }
-  .app { width: 70% !important; max-width: none !important; margin: 0 auto !important; box-shadow: 0 0 0 0.5px var(--border) !important; }
-  .view { width: 100%; }
-  .enterprise-control-wrap,
-  .daily-summary-wrap,
-  .submissions-panel,
-  .dash-panel,
-  .branch-detail-drawer {
-    width: 100%;
-  }
-  .enterprise-split {
-    grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr);
-  }
-  .tbl-wrap,
-  .enterprise-table-wrap {
-    width: 100%;
-  }
-  @media (max-width: 1200px) {
-    .app { width: 95% !important; }
-  }
+  
 
   /* Responsive */
   @media (max-width: 600px) {
@@ -632,6 +611,143 @@
   .ceo-action-list{display:flex;flex-direction:column;gap:8px}.ceo-action{border-radius:12px;border:1px solid var(--border);padding:10px 12px;background:#fff}.ceo-action.high{background:var(--red-light);border-color:var(--red-border)}.ceo-action.med{background:var(--amber-bg);border-color:#efcf94}.ceo-action h4{font-size:13px;margin-bottom:4px}.ceo-action p{font-size:11px;color:var(--text2);line-height:1.45}
   @media(max-width:1100px){.ceo-topline{grid-template-columns:repeat(2,1fr)}.ceo-grid{grid-template-columns:1fr}.ceo-metrics{grid-template-columns:repeat(2,1fr)}}
 
+
+  /* Waste & Expiry Control Dashboard */
+  .waste-hero{background:linear-gradient(135deg,var(--green) 0%,#5BA829 58%,#F4C430 135%);color:#fff;border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;box-shadow:0 16px 38px rgba(61,122,24,.20)}
+  .waste-hero h2{font-size:22px;margin-bottom:6px}.waste-hero p{font-size:13px;opacity:.92;line-height:1.45}
+  .waste-kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:16px 0}
+  .waste-kpi{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.30);border-radius:14px;padding:14px}
+  .waste-kpi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.88}.waste-kpi-val{font-size:26px;font-weight:800;margin-top:5px}
+  .waste-toolbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;margin-bottom:14px}
+  .waste-toolbar-left,.waste-toolbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.waste-toolbar select,.waste-toolbar input{border:.5px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-size:12px;background:var(--bg)}
+  .waste-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .waste-panel{background:var(--bg);border:1px solid rgba(61,122,24,.16);border-radius:var(--radius-lg);padding:15px;box-shadow:0 12px 28px rgba(61,122,24,.08)}
+  .waste-panel-title{font-size:12px;color:var(--green-mid);font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+  .waste-table-wrap{overflow-x:auto;border:.5px solid var(--border);border-radius:var(--radius);background:var(--bg)}.waste-table{width:100%;border-collapse:collapse;font-size:12px}
+  .waste-table th{background:linear-gradient(135deg,var(--green) 0%,var(--green-mid) 100%);color:#fff;text-align:left;padding:9px;font-size:11px;white-space:nowrap}
+  .waste-table td{padding:8px 9px;border-bottom:.5px solid var(--border);vertical-align:middle}.waste-table tr:hover td{background:rgba(244,196,48,.14)}
+  .waste-risk-high{color:var(--red);font-weight:800}.waste-risk-med{color:var(--amber-text);font-weight:800}.waste-risk-low{color:var(--green-mid);font-weight:800}
+  .waste-action-pill{display:inline-block;border-radius:20px;padding:3px 8px;font-size:11px;font-weight:700}.waste-action-high{background:var(--red-light);color:var(--red)}.waste-action-med{background:var(--amber-bg);color:var(--amber-text)}.waste-action-low{background:var(--green-light);color:var(--green-mid)}
+  .waste-branch-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.waste-branch-card{background:linear-gradient(135deg,#fff 0%,#f4fbec 100%);border:1px solid rgba(61,122,24,.18);border-radius:14px;padding:14px}
+  .waste-branch-name{font-size:13px;font-weight:800;margin-bottom:8px}.waste-branch-stat{font-size:12px;color:var(--text2);line-height:1.8}
+  .waste-chart{display:flex;align-items:flex-end;gap:8px;height:170px;padding:14px 6px 4px;border-bottom:1px solid var(--border)}.waste-bar{flex:1;min-width:26px;background:linear-gradient(180deg,#EF9F27,#A32D2D);border-radius:8px 8px 0 0;position:relative}.waste-bar span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);font-weight:700}.waste-bar-labels{display:flex;gap:8px;font-size:10px;color:var(--text2);padding-top:6px}.waste-bar-labels div{flex:1;text-align:center}
+  @media(max-width:1100px){.waste-kpi-grid{grid-template-columns:repeat(2,1fr)}.waste-grid{grid-template-columns:1fr}}
+
+
+  /* Dashboard width enlarged by +30% from previous 70% layout */
+  #main-app { width: 100%; }
+  .app {
+    width: 91% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+  }
+  .view,
+  .enterprise-control-wrap,
+  .daily-summary-wrap,
+  .submissions-panel,
+  .dash-panel,
+  .branch-detail-drawer,
+  .waste-panel,
+  .waste-toolbar,
+  .ceo-panel {
+    width: 100%;
+  }
+  @media (max-width: 1200px) {
+    .app { width: 97% !important; }
+  }
+
+
+  /* Waste dashboard readability fix */
+  #view-waste .waste-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #view-waste .waste-panel {
+    overflow: hidden;
+  }
+
+  #view-waste .waste-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #view-waste .waste-table {
+    min-width: 1180px;
+    table-layout: auto;
+  }
+
+  #view-waste .waste-table th,
+  #view-waste .waste-table td {
+    white-space: nowrap;
+    line-height: 1.35;
+    vertical-align: middle;
+  }
+
+  #view-waste .waste-table th:nth-child(4),
+  #view-waste .waste-table td:nth-child(4) {
+    min-width: 220px;
+    white-space: normal;
+  }
+
+  #view-waste .waste-table th:nth-child(9),
+  #view-waste .waste-table td:nth-child(9) {
+    min-width: 280px;
+    white-space: normal;
+  }
+
+  #view-waste #waste-action-table {
+    min-width: 980px;
+  }
+
+  #view-waste #waste-action-table th:nth-child(2),
+  #view-waste #waste-action-table td:nth-child(2),
+  #view-waste #waste-action-table th:nth-child(4),
+  #view-waste #waste-action-table td:nth-child(4),
+  #view-waste #waste-action-table th:nth-child(5),
+  #view-waste #waste-action-table td:nth-child(5) {
+    white-space: normal;
+    min-width: 220px;
+  }
+
+  #view-waste #waste-ledger {
+    min-width: 1050px;
+  }
+
+  #view-waste .waste-chart {
+    min-height: 220px;
+    height: 220px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  #view-waste .waste-bar {
+    min-width: 42px;
+  }
+
+  #view-waste .waste-toolbar {
+    align-items: flex-start;
+  }
+
+  #view-waste .waste-toolbar-left {
+    flex: 1;
+  }
+
+  #view-waste .waste-toolbar input {
+    min-width: 260px;
+  }
+
+  @media (max-width: 900px) {
+    #view-waste .waste-table {
+      min-width: 1050px;
+    }
+    #view-waste .waste-toolbar input,
+    #view-waste .waste-toolbar select {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -716,6 +832,7 @@
     <button class="nav-btn active" data-role="merchandiser,supervisor" onclick="switchView('merch',this)">Merchandiser form</button>
     <button class="nav-btn" data-role="merchandiser,supervisor" onclick="switchView('dash',this)">Supervisor dashboard</button>
     <button class="nav-btn" data-role="supervisor" onclick="switchView('ceo',this)">CEO dashboard</button>
+    <button class="nav-btn" data-role="supervisor" onclick="switchView('waste',this)">Waste Control</button>
   </div>
 
   <!-- ===== MERCHANDISER VIEW ===== -->
@@ -1077,6 +1194,46 @@
     <div class="ceo-panel"><div class="ceo-panel-title">Executive summary by item movement</div><div class="ceo-table-wrap"><table class="ceo-table"><thead><tr><th>Branch</th><th>Shift</th><th>Section</th><th>Code</th><th>Item</th><th>Opening</th><th>Received/Prep</th><th>Sold/Used</th><th>Closing</th><th>Order</th><th>Expired/Damage</th><th>Status</th></tr></thead><tbody id="ceo-item-summary"></tbody></table></div></div>
   </div>
 
+
+  <!-- ===== WASTE CONTROL DASHBOARD ===== -->
+  <div id="view-waste" class="view">
+    <div class="waste-hero">
+      <h2>Waste & Expiry Control Dashboard</h2>
+      <p>Identify repeated expired items, branch-wise waste patterns, and suggested order/preparation reductions based on actual submission history.</p>
+      <div class="waste-kpi-grid">
+        <div class="waste-kpi"><div class="waste-kpi-lbl">Expired quantity</div><div class="waste-kpi-val" id="waste-total-expired">0</div></div>
+        <div class="waste-kpi"><div class="waste-kpi-lbl">Repeated items</div><div class="waste-kpi-val" id="waste-repeat-items">0</div></div>
+        <div class="waste-kpi"><div class="waste-kpi-lbl">Affected branches</div><div class="waste-kpi-val" id="waste-branches">0</div></div>
+        <div class="waste-kpi"><div class="waste-kpi-lbl">High-risk items</div><div class="waste-kpi-val" id="waste-high-risk">0</div></div>
+        <div class="waste-kpi"><div class="waste-kpi-lbl">Suggested reduction</div><div class="waste-kpi-val" id="waste-reduction">0</div></div>
+        <div class="waste-kpi"><div class="waste-kpi-lbl">Waste Control Score</div><div class="waste-kpi-val" id="waste-score">0%</div><div style="font-size:11px;opacity:.9;margin-top:4px">Higher score = less wastage</div></div>
+      </div>
+    </div>
+
+    <div class="waste-toolbar">
+      <div class="waste-toolbar-left">
+        <label style="font-size:12px;color:var(--text2)">Filter:</label>
+        <select id="waste-days" onchange="renderWasteDash()"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
+        <select id="waste-branch" onchange="renderWasteDash()"><option value="">All branches</option><option value="festival">Festival City</option><option value="dfc">Dubai Festival</option><option value="moe">Mall of Emirates</option><option value="deira">Deira City</option><option value="marina">Marina Mall</option><option value="vegetable_souk">Vegetable Souk</option><option value="mirdif">Mirdif</option></select>
+        <select id="waste-risk" onchange="renderWasteDash()"><option value="">All risk levels</option><option value="high">High risk</option><option value="medium">Medium risk</option><option value="low">Low risk</option></select>
+        <input type="text" id="waste-search" onkeyup="renderWasteDash()" placeholder="Search item/code/branch..." />
+      </div>
+      <div class="waste-toolbar-right"><button class="btn" onclick="renderWasteDash()">Refresh</button><button class="btn btn-excel" onclick="exportExcel()">Export Excel</button></div>
+    </div>
+
+    <div class="waste-grid">
+      <div class="waste-panel"><div class="waste-panel-title">Repeated expired items — recommended reduction</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Risk</th><th>Branch</th><th>Code</th><th>Item</th><th>Total Expired</th><th>Times</th><th>Avg Qty</th><th>Last Date</th><th>Recommendation</th></tr></thead><tbody id="waste-repeat-table"></tbody></table></div></div>
+      <div class="waste-panel"><div class="waste-panel-title">Waste trend</div><div class="waste-chart" id="waste-trend-chart"></div><div class="waste-bar-labels" id="waste-trend-labels"></div></div>
+    </div>
+
+    <div class="waste-grid">
+      <div class="waste-panel"><div class="waste-panel-title">Branch-wise waste ranking</div><div class="waste-branch-card-grid" id="waste-branch-ranking"></div></div>
+      <div class="waste-panel"><div class="waste-panel-title">Waste action priorities</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Priority</th><th>Item</th><th>Branch</th><th>Reason</th><th>Action</th></tr></thead><tbody id="waste-action-table"></tbody></table></div></div>
+    </div>
+
+    <div class="waste-panel"><div class="waste-panel-title">Expired item incident ledger</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Date</th><th>Branch</th><th>Shift</th><th>Submitted By</th><th>Section</th><th>Code</th><th>Item</th><th>Expired Qty</th></tr></thead><tbody id="waste-ledger"></tbody></table></div></div>
+  </div>
+
 </div><!-- end .app -->
 </div><!-- end #main-app -->
 
@@ -1346,6 +1503,40 @@ async function renderCeoDash(){
   document.getElementById('ceo-action-list').innerHTML=actions.slice(0,12).map(a=>`<div class="ceo-action ${a.level}"><h4>${a.title}</h4><p>${a.sub}</p></div>`).join('')||'<div class="ceo-action"><h4>All clear</h4><p>No major CEO-level action items for today.</p></div>';
 }
 
+
+function wasteNum(v){const n=Number(v||0);return Number.isFinite(n)?n:0;}
+function wasteDateDaysAgo(days){const d=new Date();d.setDate(d.getDate()-Number(days||7)+1);return d.toISOString().split('T')[0];}
+function collectWasteIncidents(daysBack,branchFilter){
+  const startDate=wasteDateDaysAgo(daysBack), rows=[];
+  (submissions||[]).forEach(s=>{
+    if(!s.date||s.date<startDate)return;if(branchFilter&&s.branch!==branchFilter)return;
+    (s.pkg||[]).forEach(r=>{const qty=wasteNum(r.expired);if(qty>0)rows.push({date:s.date,branch:s.branch,branchShort:s.branchShort,shift:s.shift,by:s.name,section:'Packaged',code:String(r.code||''),item:r.name||'',qty});});
+    (s.ih||[]).forEach(r=>{const qty=wasteNum(r.expired);if(qty>0)rows.push({date:s.date,branch:s.branch,branchShort:s.branchShort,shift:s.shift,by:s.name,section:'In-house',code:String(r.code||''),item:r.name||'',qty});});
+  });
+  return rows;
+}
+function aggregateWaste(rows){
+  const map=new Map();
+  rows.forEach(r=>{const key=`${r.branch}|${r.code||r.item}`;if(!map.has(key))map.set(key,{branch:r.branch,branchShort:r.branchShort,code:r.code,item:r.item,totalQty:0,count:0,lastDate:r.date,incidents:[]});const o=map.get(key);o.totalQty+=r.qty;o.count+=1;if(r.date>o.lastDate)o.lastDate=r.date;o.incidents.push(r);});
+  return [...map.values()].map(x=>{x.avgQty=Math.ceil(x.totalQty/Math.max(1,x.count));if(x.count>=3||x.totalQty>=10){x.risk='high';x.action=`Reduce next order/preparation by approx. ${x.avgQty} unit(s) or 30%`;}else if(x.count===2||x.totalQty>=5){x.risk='medium';x.action=`Reduce by approx. ${x.avgQty} unit(s) or 15% and monitor`;}else{x.risk='low';x.action='Monitor for repeat expiry';}return x;}).sort((a,b)=>(b.count*10+b.totalQty)-(a.count*10+a.totalQty));
+}
+function wasteRiskHtml(risk){if(risk==='high')return'<span class="waste-action-pill waste-action-high">High</span>';if(risk==='medium')return'<span class="waste-action-pill waste-action-med">Medium</span>';return'<span class="waste-action-pill waste-action-low">Low</span>';}
+async function renderWasteDash(){
+  await loadSubmissions();
+  const days=Number((document.getElementById('waste-days')||{}).value||7), branch=(document.getElementById('waste-branch')||{}).value||'', risk=(document.getElementById('waste-risk')||{}).value||'', q=String((document.getElementById('waste-search')||{}).value||'').toLowerCase().trim();
+  const incidents=collectWasteIncidents(days,branch);let aggregated=aggregateWaste(incidents);
+  if(risk)aggregated=aggregated.filter(x=>x.risk===risk);if(q)aggregated=aggregated.filter(x=>`${x.branchShort} ${x.code} ${x.item}`.toLowerCase().includes(q));
+  const totalExpired=incidents.reduce((a,r)=>a+r.qty,0), repeatedItems=aggregated.filter(x=>x.count>=2).length, branchCount=new Set(incidents.map(x=>x.branch)).size, highRisk=aggregated.filter(x=>x.risk==='high').length, suggestedReduction=aggregated.reduce((a,x)=>a+((x.risk==='high'||x.risk==='medium')?x.avgQty:0),0), wasteScore=Math.max(0,Math.min(100,100-(highRisk*10)-(repeatedItems*4)-(totalExpired>0?8:0)));
+  document.getElementById('waste-total-expired').textContent=totalExpired;document.getElementById('waste-repeat-items').textContent=repeatedItems;document.getElementById('waste-branches').textContent=branchCount;document.getElementById('waste-high-risk').textContent=highRisk;document.getElementById('waste-reduction').textContent=suggestedReduction;document.getElementById('waste-score').textContent=`${wasteScore}%`;
+  document.getElementById('waste-repeat-table').innerHTML=aggregated.slice(0,50).map(x=>`<tr><td>${wasteRiskHtml(x.risk)}</td><td>${x.branchShort}</td><td>${x.code||'—'}</td><td style="font-weight:600">${x.item}</td><td class="${x.totalQty>0?'waste-risk-high':''}">${x.totalQty}</td><td>${x.count}</td><td>${x.avgQty}</td><td>${x.lastDate}</td><td>${x.action}</td></tr>`).join('')||'<tr><td colspan="9">No expired items found for selected period.</td></tr>';
+  const byBranch={};incidents.forEach(r=>{if(!byBranch[r.branch])byBranch[r.branch]={branchShort:r.branchShort,qty:0,count:0,items:new Set()};byBranch[r.branch].qty+=r.qty;byBranch[r.branch].count+=1;byBranch[r.branch].items.add(r.code||r.item);});
+  document.getElementById('waste-branch-ranking').innerHTML=Object.values(byBranch).sort((a,b)=>b.qty-a.qty).map(b=>`<div class="waste-branch-card"><div class="waste-branch-name">${b.branchShort}</div><div class="waste-branch-stat"><strong>Total expired:</strong> ${b.qty}</div><div class="waste-branch-stat"><strong>Expiry incidents:</strong> ${b.count}</div><div class="waste-branch-stat"><strong>Unique items:</strong> ${b.items.size}</div></div>`).join('')||'<div class="empty">No branch waste found.</div>';
+  document.getElementById('waste-action-table').innerHTML=aggregated.filter(x=>x.risk==='high'||x.risk==='medium').slice(0,20).map((x,i)=>`<tr><td>${i+1}</td><td style="font-weight:600">${x.item}</td><td>${x.branchShort}</td><td>${x.count} expiry incident(s), total qty ${x.totalQty}</td><td>${x.action}</td></tr>`).join('')||'<tr><td colspan="5">No action priority found.</td></tr>';
+  const sorted=[...incidents].sort((a,b)=>String(b.date).localeCompare(String(a.date)));document.getElementById('waste-ledger').innerHTML=sorted.slice(0,200).map(r=>`<tr><td>${r.date}</td><td>${r.branchShort}</td><td>${r.shift}</td><td>${r.by}</td><td>${r.section}</td><td>${r.code||'—'}</td><td style="font-weight:600">${r.item}</td><td class="waste-risk-high">${r.qty}</td></tr>`).join('')||'<tr><td colspan="8">No expired item incidents found.</td></tr>';
+  const trendDates=[];for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);trendDates.push(d.toISOString().split('T')[0]);}const trend=trendDates.map(d=>incidents.filter(r=>r.date===d).reduce((a,r)=>a+r.qty,0)),maxVal=Math.max(...trend,1);
+  document.getElementById('waste-trend-chart').innerHTML=trend.map(v=>`<div class="waste-bar" style="height:${Math.max(6,Math.round(v/maxVal*150))}px"><span>${v}</span></div>`).join('');document.getElementById('waste-trend-labels').innerHTML=trendDates.map(d=>`<div>${d.slice(5)}</div>`).join('');
+}
+
 function switchView(v, btn) {
   document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
@@ -1353,6 +1544,7 @@ function switchView(v, btn) {
   btn.classList.add('active');
   if (v === 'dash') renderDash();
   if (v === 'ceo') renderCeoDash();
+  if (v === 'waste') renderWasteDash();
   if (v === 'prod-orders') renderProductionOrders();
   if (v === 'prod-summary') renderProductionSummary();
 }
