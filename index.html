@@ -853,12 +853,9 @@
         <select id="br">
           <option value="">Select branch...</option>
           <option value="festival">Carrefour Festival City</option>
-          <option value="dfc">Carrefour Dubai Festival</option>
           <option value="moe">Carrefour Mall of Emirates</option>
-          <option value="deira">Carrefour Deira City</option>
-          <option value="marina">Carrefour Marina Mall</option>
           <option value="vegetable_souk">Vegetable Souk</option>
-          <option value="mirdif">HF Carrefour Mirdif</option>
+          <option value="mirdif">HF Carrefour Mirdif</option><option value="ibn">IBN Battuta</option>
         </select>
       </div>
       <div class="fg">
@@ -1026,12 +1023,9 @@
           <select id="ent-branch" onchange="renderEnterpriseDashboard()">
             <option value="">All branches</option>
             <option value="festival">Festival City</option>
-            <option value="dfc">Dubai Festival</option>
             <option value="moe">Mall of Emirates</option>
-            <option value="deira">Deira City</option>
-            <option value="marina">Marina Mall</option>
             <option value="vegetable_souk">Vegetable Souk</option>
-            <option value="mirdif">Mirdif</option>
+            <option value="mirdif">Mirdif</option><option value="ibn">IBN Battuta</option>
           </select>
           <select id="ent-section" onchange="renderEnterpriseDashboard()">
             <option value="">All sections</option>
@@ -1122,15 +1116,13 @@
         <div class="table-toolbar">
           <div class="toolbar-left">
             <label style="font-size:12px;color:var(--text2)">Filter:</label>
+        <span class="mini-pill" style="background:var(--green-light);color:var(--green-mid);font-weight:600">Fixed view: Last 7 days only</span>
             <select id="f-branch" onchange="renderDash()">
               <option value="">All branches</option>
               <option value="festival">Festival City</option>
-              <option value="dfc">Dubai Festival</option>
               <option value="moe">Mall of Emirates</option>
-              <option value="deira">Deira City</option>
-              <option value="marina">Marina Mall</option>
               <option value="vegetable_souk">Vegetable Souk</option>
-              <option value="mirdif">Mirdif</option>
+              <option value="mirdif">Mirdif</option><option value="ibn">IBN Battuta</option>
             </select>
             <select id="f-shift" onchange="renderDash()">
               <option value="">All shifts</option>
@@ -1199,7 +1191,7 @@
   <div id="view-waste" class="view">
     <div class="waste-hero">
       <h2>Waste & Expiry Control Dashboard</h2>
-      <p>Identify repeated expired items, branch-wise waste patterns, and suggested order/preparation reductions based on actual submission history.</p>
+      <p>Shows only the last 7 days of expired items, repeated waste patterns, and suggested order/preparation reductions.</p>
       <div class="waste-kpi-grid">
         <div class="waste-kpi"><div class="waste-kpi-lbl">Expired quantity</div><div class="waste-kpi-val" id="waste-total-expired">0</div></div>
         <div class="waste-kpi"><div class="waste-kpi-lbl">Repeated items</div><div class="waste-kpi-val" id="waste-repeat-items">0</div></div>
@@ -1213,8 +1205,8 @@
     <div class="waste-toolbar">
       <div class="waste-toolbar-left">
         <label style="font-size:12px;color:var(--text2)">Filter:</label>
-        <select id="waste-days" onchange="renderWasteDash()"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
-        <select id="waste-branch" onchange="renderWasteDash()"><option value="">All branches</option><option value="festival">Festival City</option><option value="dfc">Dubai Festival</option><option value="moe">Mall of Emirates</option><option value="deira">Deira City</option><option value="marina">Marina Mall</option><option value="vegetable_souk">Vegetable Souk</option><option value="mirdif">Mirdif</option></select>
+        <select id="waste-days" onchange="renderWasteDash()"><option value="7" selected>Last 7 days</option></select>
+        <select id="waste-branch" onchange="renderWasteDash()"><option value="">All branches</option><option value="festival">Festival City</option><option value="moe">Mall of Emirates</option><option value="vegetable_souk">Vegetable Souk</option><option value="mirdif">Mirdif</option><option value="ibn">IBN Battuta</option></select>
         <select id="waste-risk" onchange="renderWasteDash()"><option value="">All risk levels</option><option value="high">High risk</option><option value="medium">Medium risk</option><option value="low">Low risk</option></select>
         <input type="text" id="waste-search" onkeyup="renderWasteDash()" placeholder="Search item/code/branch..." />
       </div>
@@ -1222,16 +1214,16 @@
     </div>
 
     <div class="waste-grid">
-      <div class="waste-panel"><div class="waste-panel-title">Repeated expired items — recommended reduction</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Risk</th><th>Branch</th><th>Code</th><th>Item</th><th>Total Expired</th><th>Times</th><th>Avg Qty</th><th>Last Date</th><th>Recommendation</th></tr></thead><tbody id="waste-repeat-table"></tbody></table></div></div>
-      <div class="waste-panel"><div class="waste-panel-title">Waste trend</div><div class="waste-chart" id="waste-trend-chart"></div><div class="waste-bar-labels" id="waste-trend-labels"></div></div>
+      <div class="waste-panel"><div class="waste-panel-title">Last 7 days repeated expired items — recommended reduction</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Risk</th><th>Branch</th><th>Code</th><th>Item</th><th>Total Expired</th><th>Times</th><th>Avg Qty</th><th>Last Date</th><th>Recommendation</th></tr></thead><tbody id="waste-repeat-table"></tbody></table></div></div>
+      <div class="waste-panel"><div class="waste-panel-title">Last 7 days waste trend</div><div class="waste-chart" id="waste-trend-chart"></div><div class="waste-bar-labels" id="waste-trend-labels"></div></div>
     </div>
 
     <div class="waste-grid">
-      <div class="waste-panel"><div class="waste-panel-title">Branch-wise waste ranking</div><div class="waste-branch-card-grid" id="waste-branch-ranking"></div></div>
+      <div class="waste-panel"><div class="waste-panel-title">Last 7 days branch-wise waste ranking</div><div class="waste-branch-card-grid" id="waste-branch-ranking"></div></div>
       <div class="waste-panel"><div class="waste-panel-title">Waste action priorities</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Priority</th><th>Item</th><th>Branch</th><th>Reason</th><th>Action</th></tr></thead><tbody id="waste-action-table"></tbody></table></div></div>
     </div>
 
-    <div class="waste-panel"><div class="waste-panel-title">Expired item incident ledger</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Date</th><th>Branch</th><th>Shift</th><th>Submitted By</th><th>Section</th><th>Code</th><th>Item</th><th>Expired Qty</th></tr></thead><tbody id="waste-ledger"></tbody></table></div></div>
+    <div class="waste-panel"><div class="waste-panel-title">Last 7 days expired item incident ledger</div><div class="waste-table-wrap"><table class="waste-table"><thead><tr><th>Date</th><th>Branch</th><th>Shift</th><th>Submitted By</th><th>Section</th><th>Code</th><th>Item</th><th>Expired Qty</th></tr></thead><tbody id="waste-ledger"></tbody></table></div></div>
   </div>
 
 </div><!-- end .app -->
@@ -1240,23 +1232,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Removed inactive branches: dfc, deira, marina
 const BRANCHES = {
   festival: 'Carrefour Festival City',
-  dfc: 'Carrefour Dubai Festival',
   moe: 'Carrefour Mall of Emirates',
-  deira: 'Carrefour Deira City',
-  marina: 'Carrefour Marina Mall',
   vegetable_souk: 'Vegetable Souk',
-  mirdif: 'HF Carrefour Mirdif'
+  mirdif: 'HF Carrefour Mirdif',
+  ibn: 'IBN Battuta'
 };
 const BRANCH_SHORT = {
   festival:'Festival City',
-  dfc:'Dubai Festival',
   moe:'Mall of Emirates',
-  deira:'Deira City',
-  marina:'Marina Mall',
   vegetable_souk:'Vegetable Souk',
-  mirdif:'Mirdif'
+  mirdif:'Mirdif',
+  ibn:'IBN Battuta'
 };
 
 let PKG = [];
@@ -1523,7 +1512,7 @@ function aggregateWaste(rows){
 function wasteRiskHtml(risk){if(risk==='high')return'<span class="waste-action-pill waste-action-high">High</span>';if(risk==='medium')return'<span class="waste-action-pill waste-action-med">Medium</span>';return'<span class="waste-action-pill waste-action-low">Low</span>';}
 async function renderWasteDash(){
   await loadSubmissions();
-  const days=Number((document.getElementById('waste-days')||{}).value||7), branch=(document.getElementById('waste-branch')||{}).value||'', risk=(document.getElementById('waste-risk')||{}).value||'', q=String((document.getElementById('waste-search')||{}).value||'').toLowerCase().trim();
+  const days=7, branch=(document.getElementById('waste-branch')||{}).value||'', risk=(document.getElementById('waste-risk')||{}).value||'', q=String((document.getElementById('waste-search')||{}).value||'').toLowerCase().trim();
   const incidents=collectWasteIncidents(days,branch);let aggregated=aggregateWaste(incidents);
   if(risk)aggregated=aggregated.filter(x=>x.risk===risk);if(q)aggregated=aggregated.filter(x=>`${x.branchShort} ${x.code} ${x.item}`.toLowerCase().includes(q));
   const totalExpired=incidents.reduce((a,r)=>a+r.qty,0), repeatedItems=aggregated.filter(x=>x.count>=2).length, branchCount=new Set(incidents.map(x=>x.branch)).size, highRisk=aggregated.filter(x=>x.risk==='high').length, suggestedReduction=aggregated.reduce((a,x)=>a+((x.risk==='high'||x.risk==='medium')?x.avgQty:0),0), wasteScore=Math.max(0,Math.min(100,100-(highRisk*10)-(repeatedItems*4)-(totalExpired>0?8:0)));
